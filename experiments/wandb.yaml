@@ -6,4 +6,5 @@ trainer:
       log_model: True
       entity: ain-space
       tags:
-        - illustris
+        - Zernike model
+        - meaningless loss
