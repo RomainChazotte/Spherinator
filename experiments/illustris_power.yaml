@@ -33,15 +33,15 @@ lr_scheduler:
   class_path: lightning.pytorch.cli.ReduceLROnPlateau
   init_args:
     mode: min
-    factor: 0.1
-    patience: 5
+    factor: 0.3
+    patience: 25
     cooldown: 5
-    min_lr: 0.000001
+    min_lr: 0.0000001
     monitor: train_loss
     verbose: True
 
 trainer:
-  max_epochs: 50000
+  max_epochs: 300
   accelerator: gpu
   devices: [2]
   precision: 32

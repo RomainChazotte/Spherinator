@@ -52,10 +52,11 @@ class LogReconstructionCallback(Callback):
 
 
         # Plot the original samples and their reconstructions side by side
+
         fig = figure.Figure(figsize=(2 * self.num_samples, 6))
         ax = fig.subplots(3, self.num_samples)
         for i in range(self.num_samples):
-            ax[0, i].imshow(np.clip(torch.sum(scaled,dim=-3)[i].cpu().detach().numpy().T, 0, 1))
+            ax[0, i].imshow(np.clip((scaled)[i].cpu().detach().numpy().T, 0, 1))
             ax[0, i].set_title("Original")
             ax[0, i].axis("off")
             ax[1, i].imshow(np.clip(rec[i].cpu().detach().numpy().T, 0, 1))

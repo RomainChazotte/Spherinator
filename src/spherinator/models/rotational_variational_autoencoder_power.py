@@ -109,8 +109,12 @@ class RotationalVariationalAutoencoderPower(SpherinatorModule):
         #q_z, p_z = self.reparameterize(z_location, z_scale.squeeze())
         #z = q_z.rsample()
         #print(z[0])
+        '''
         pre_model = torch.sum(x,-3)
         x = self.Embedding_Function(pre_model).unsqueeze(1)
+        '''
+        x = self.Embedding_Function(x)
+
         #print('start')
         #print(x)
 
@@ -222,11 +226,12 @@ class RotationalVariationalAutoencoderPower(SpherinatorModule):
         '''
         if loss < 1.0:
             #print(x[0,0,0:5],out[0,0,0:5])
+            import matplotlib.pyplot as plt
             a = random.randint(3, 19)
             #print('hi')
 
             plt.figure()
-            plt.imshow(torch.sum(scaled,-3)[0].cpu().float().numpy())
+            plt.imshow((torch.sum(scaled,dim=-3))[0].cpu().float().numpy())
             plt.savefig('prepica{}.png'.format(a))
             plt.close()
 
@@ -235,16 +240,40 @@ class RotationalVariationalAutoencoderPower(SpherinatorModule):
             plt.imshow(reconstruction[0].cpu().float().numpy())
             plt.savefig('recpica{}.png'.format(a))
             plt.close()
+            #print(reconstruction[...,50:55,50:55])
+            #print(torch.sum(scaled,dim=-3)[...,50:55,50:55])
 
             reconstruction = self.Decoding_Function(out).squeeze().detach()
             plt.figure()
             plt.imshow(reconstruction[0].cpu().float().numpy())
             plt.savefig('postpica{}.png'.format(a))
             plt.close()
+
+            plt.figure()
+            plt.imshow((torch.transpose(scaled,-1,-3))[0].cpu().float().numpy())
+            plt.savefig('prepica{}.png'.format(a))
+            plt.close()
+
+            reconstruction = self.Decoding_Function(x).squeeze().detach()
+            plt.figure()
+            plt.imshow(torch.transpose(reconstruction,-1,-3)[0].cpu().float().numpy())
+            plt.savefig('recpica{}.png'.format(a))
+            plt.close()
+
+            reconstruction = self.Decoding_Function(out).squeeze().detach()
+            plt.figure()
+            plt.imshow(torch.transpose(reconstruction,-1,-3)[0].cpu().float().numpy())
+            plt.savefig('postpica{}.png'.format(a))
+            plt.close()
         '''
 
         #loss = loss_recon.mean()
-
+        '''
+        sum_out = torch.sum(out)
+        sum_rec = torch.sum(x)
+        self.log("Out_sum", sum_out, prog_bar=True)
+        self.log("Rec_sum", sum_rec, prog_bar=True)
+        '''
         self.log("train_loss", loss, prog_bar=True)
         self.log("learning_rate", self.optimizers().param_groups[0]["lr"])
         return loss
@@ -254,7 +283,8 @@ class RotationalVariationalAutoencoderPower(SpherinatorModule):
         return Adam(self.parameters(), lr=1e-3)
 
     def project(self, images):
-        pre_model = torch.sum(images,-3)
+        #pre_model = torch.sum(images,-3)
+        pre_model = images
         x = self.Embedding_Function(pre_model).unsqueeze(1)
         #print('start')
         #print(x)
@@ -358,7 +388,7 @@ class Zernike_embedding(nn.Module):
         out = []
         M = self.M_embedding_generator(n_max)
         for i in range(len(Zernike_functions)):
-            out.append([functions[i](np.sqrt((x ** 2 + z ** 2)))*np.cos(M[i]*np.arctan2(x , (z + eps))),functions[i](np.sqrt((x ** 2 + z ** 2)))*np.sin(M[i]*np.arctan2(x ,(z  + eps)))])
+            out.append([functions[i](np.sqrt((x ** 2 + z ** 2)))*np.cos(M[i]*np.arctan2(x , (z ))),functions[i](np.sqrt((x ** 2 + z ** 2)))*np.sin(M[i]*np.arctan2(x ,(z  )))])
         #print(out[0])
         # Add restriction to r<1
         out_mask = self.mask(x,z)
@@ -366,7 +396,7 @@ class Zernike_embedding(nn.Module):
 
         norm = []
         for i in range(len(Zernike_functions)):
-            norm.append([functions[i](np.sqrt((x ** 2 + z ** 2)))*np.cos(M[i]*np.arctan2(x , (z + eps))),functions[i](np.sqrt((x ** 2 + z ** 2)))*np.cos(M[i]*np.arctan2(x ,(z  + eps)))])
+            norm.append([functions[i](np.sqrt((x ** 2 + z ** 2)))*np.cos(M[i]*np.arctan2(x , (z ))),functions[i](np.sqrt((x ** 2 + z ** 2)))*np.cos(M[i]*np.arctan2(x ,(z  )))])
 
         norm = torch.tensor(np.array(norm*out_mask),dtype=torch.float, device =  'cuda:2')
 
@@ -382,7 +412,7 @@ class Zernike_embedding(nn.Module):
         #print(input.size())
         out = torch.einsum('ijkl,...kl->...ij',self.Zernike_matrix,input)
         #print(out.size())
-        return out
+        return out*100
 
 
 
@@ -470,14 +500,14 @@ class Zernike_decode(nn.Module):
         out = []
         M = self.M_embedding_generator(n_max)
         for i in range(len(Zernike_functions)):
-            out.append([functions[i](np.sqrt((x ** 2 + z ** 2)))*np.cos(M[i]*np.arctan2(x , (z + eps))),functions[i](np.sqrt((x ** 2 + z ** 2)))*np.sin(M[i]*np.arctan2(x ,(z  + eps)))])
+            out.append([functions[i](np.sqrt((x ** 2 + z ** 2)))*np.cos(M[i]*np.arctan2(x , (z ))),functions[i](np.sqrt((x ** 2 + z ** 2)))*np.sin(M[i]*np.arctan2(x ,(z  )))])
         #print(out[0])
         # Add restriction to r<1
         out_mask = self.mask(x,z)
         out = torch.tensor(np.array(out*out_mask),dtype=torch.float, device =  'cuda:2')
         norm = []
         for i in range(len(Zernike_functions)):
-            norm.append([functions[i](np.sqrt((x ** 2 + z ** 2)))*np.cos(M[i]*np.arctan2(x , (z + eps))),functions[i](np.sqrt((x ** 2 + z ** 2)))*np.cos(M[i]*np.arctan2(x ,(z  + eps)))])
+            norm.append([functions[i](np.sqrt((x ** 2 + z ** 2)))*np.cos(M[i]*np.arctan2(x , (z ))),functions[i](np.sqrt((x ** 2 + z ** 2)))*np.cos(M[i]*np.arctan2(x ,(z  )))])
 
         norm = torch.tensor(np.array(norm*out_mask),dtype=torch.float, device =  'cuda:2')
 
@@ -490,4 +520,4 @@ class Zernike_decode(nn.Module):
         #self.Zernike_matrix = self.Zernike_matrix/(norm+eps)
         #This should be implemented in init, do this later
         out = torch.einsum('ijkl,...ij->...kl',self.Zernike_matrix,input)
-        return out
+        return out*100
