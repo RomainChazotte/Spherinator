@@ -8,7 +8,7 @@ import torch.nn.functional as F
 from .Zernike_layer import Lintrans3, Multilin, Zernike_layer
 
 
-class ConvolutionalEncoder(pl.LightningModule):
+class ZernikeEncoder(pl.LightningModule):
     def __init__(self, h_dim: int = 256):
         super().__init__()
         test_dimens = False

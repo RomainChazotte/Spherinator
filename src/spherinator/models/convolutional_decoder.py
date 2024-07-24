@@ -4,19 +4,14 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class ConvolutionalDecoder256(pl.LightningModule):
+class ConvolutionalDecoder(pl.LightningModule):
     def __init__(self, latent_dim: int):
-        """Convolutional decoder for 256x256 images.
-        Input: h_dim
-        Output: 3x256x256
-        H_out = (H_in - 1) * stride[0] - 2 * padding[0] + dilation[0] * (kernel_size[0] - 1) + output_padding[0] + 1
-        """
         super().__init__()
 
         self.fc = nn.Linear(latent_dim, 256 * 4 * 4)
         self.deconv1 = nn.ConvTranspose2d(
             in_channels=256, out_channels=128, kernel_size=(4, 4), stride=2, padding=1
-        )  # 8x8 = 6 - 2 + 3 + 1
+        )  # 8x8
         self.deconv2 = nn.ConvTranspose2d(
             in_channels=128, out_channels=128, kernel_size=(4, 4), stride=2, padding=1
         )  # 16x16
@@ -27,11 +22,11 @@ class ConvolutionalDecoder256(pl.LightningModule):
             in_channels=64, out_channels=32, kernel_size=(4, 4), stride=2, padding=1
         )  # 64x64
         self.deconv5 = nn.ConvTranspose2d(
-            in_channels=32, out_channels=16, kernel_size=(4, 4), stride=2, padding=1
-        )  # 128x128
+            in_channels=32, out_channels=16, kernel_size=(3, 3), stride=2, padding=1
+        )  # 127x127
         self.deconv6 = nn.ConvTranspose2d(
-            in_channels=16, out_channels=3, kernel_size=(4, 4), stride=2, padding=1
-        )  # 256x256
+            in_channels=16, out_channels=3, kernel_size=(2, 2), stride=1, padding=0
+        )  # 128x128
 
     def forward(self, x: torch.tensor) -> torch.tensor:
         x = F.relu(self.fc(x))

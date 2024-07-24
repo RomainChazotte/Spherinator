@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "spherinator"
-version = "0.3.0-dev0"
+version = "0.3.0"
 description = "Rotation-Invariant Hyperspherical Variational Convolutional Autoencoder"
 authors = [
     "Kai Polsterer <kai.polsterer@h-its.org>",
@@ -32,11 +32,12 @@ lightning = "^2.1.2"
 matplotlib = "^3.8.2"
 numpy = "^1.26.2"
 onnx = "^1.15.0"
+onnxscript = "^0.1.0.dev"
 pandas = "^2.1.3"
 power-spherical = "^0.8.1"
-psutil = "^5.9.7"
+psutil = "^6.0"
 python = "^3.9"
-scikit-image = "^0.22.0"
+scikit-image = "^0.24"
 scipy = "^1.11.4"
 
 torch = "^2.2"
@@ -56,7 +57,7 @@ h5py = "^3.11.0"
 [tool.poetry.group.dev.dependencies]
 flake8 = "^7.0.0"
 jupytext = "^1.15.2"
-pip-licenses = "^4.3.3"
+pip-licenses = "^5.0"
 pytest = "^8.0.2"
 pytest-cov = "^5.0"
 scikit-learn = "^1.3.2"
@@ -94,11 +95,15 @@ build-backend = "poetry.core.masonry.api"
 [tool.pytest]
 timeout = 300
 testpaths = 'tests'
+xfail_strict = true
 
 [tool.pytest.ini_options]
 filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore:The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument",
+    "ignore:torch.onnx.dynamo_export only implements opset version 18 for now.",
+    "ignore:GPU available but not used.",
+    "ignore:You requested to overfit but enabled train dataloader shuffling.",
 ]
 
 [tool.pylint.TYPECHECK]

@@ -22,7 +22,7 @@ from .zernike_decoder import ConvolutionalDecoder
 from .zernike_encoder import ConvolutionalEncoder
 
 
-class RotationalVariationalAutoencoderPower(SpherinatorModule):
+class ZernikeAutoencoder(SpherinatorModule):
     def __init__(
         self,
         encoder: nn.Module = ConvolutionalEncoder(),
