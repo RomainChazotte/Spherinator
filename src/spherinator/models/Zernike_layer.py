@@ -1,12 +1,19 @@
-import torch
-import torch.nn as nn
-import numpy
-import numpy as np
-from numpy import convolve
-import scipy
 import math
 
+import numpy
+import numpy as np
+import scipy
+import torch
+import torch.nn as nn
+from numpy import convolve
+
+
 class  Non_linearity(nn.Module):
+    '''
+    A Non-linearity defined for Zernike objects. The Non-linearity needs to act on the absolute value of sqrt((Z_m^n)**2 + (Z_-m^n)**2), in order to not break equivariance.
+    This function replicates the functionallity of ReLU, with a learnable cutoff. It takes the abs value, applies a 1D linear layer to it, and applies a differentiable step-function to it.
+    This is multiplied to the input. The step function is used so out is proportional to in, not to in**2, which leads to NaNs appearing.
+    '''
     def __init__(self, normalize= False):
         super().__init__()
         self.lin = nn.Linear(1,1)
@@ -34,34 +41,47 @@ class Lintrans3(nn.Module):
             x = self.Non_lin(x)
         return x
 class Multilin(nn.Module):
+    '''
+    A class that creates a linear layer with independant weights along it's channels.
+    In this framework, this serves to create a linear layer convolving the channels with each other, but doing this in a way that is independent for different m,n.
+    Yet, it acts identical on n,m and n,-m; therefore keeping rotation equivariance
+    '''
     def __init__(self, inp,out,size,Non_lin=False):
         super().__init__()
         self.device = 'cuda:2'
-        # try torch.nn.init.normal_  and torch.nn.init.kaiming_uniform_
         self.weight_lin = torch.nn.parameter.Parameter(torch.nn.init.normal_(torch.empty(size,inp,out, device = self.device)))#/np.sqrt(inp))
-        #self.bias = torch.nn.parameter.Parameter(torch.zeros(size,1, device = self.device))
         self.Non_lin_bool = Non_lin
-        #print(size,inp,out)
         if Non_lin:
             self.Non_lin = Non_linearity()
     def forward(self,x):
-        #print(x.size())
-        #print(self.weight_lin.size())
         x = torch.einsum('ijk,...jil->...kil',self.weight_lin,x)
-        #x = x+ self.bias
         if self.Non_lin_bool:
             x = self.Non_lin(x)
         return x
+
 
 
 class Zernike_layer(nn.Module):
     def __init__(self, n_max = 30,n_max_2=None, n_out=30, multichanneled = False,in_channels = 1 ,intermediate_channels=1, out_channels =1 ,last_layer = False, fast_test_dimensionality = False,normalize=False, device = 'cuda:2'):
         super().__init__()
         self.device = device
-        #test_tensor = torch.ones(3, device = self.device)
-        #print('initialized_tensor')
+        '''
+        The core Zernike layer. The final forward method is essentially yust simple matrix multiplication, most of the things happen in preprocessing.
+
+        The arguments n_max and n_max_2 are the orders of the Zernike Vectors input into the Network. If n_max_2 is not set, it is set to n_max_2 = n_max.
+        n_out is the desired Order of the output. All inputs get embedded into the space of the highest of the three n, and the product performed in that space.
+        Finally, if n_out is smaller than this n, only the terms corresponding to n_out get output.
+
+        The argument "fast_test_dimensionality" skips that processing to test wether everything else works. This is due to the processing taking rather long, which is annoying for bugfixing.
+
+
+        '''
 
         self.increase_in1 = False
+        if n_max_2 is not None:
+            if n_max_2 < n_max:
+                print('For inputs of different Orders, please use in2 as the input of higher order')
+                Donkey
         if fast_test_dimensionality:
             print('Warning, this layer is completely unfunctional, yet will load faster, so you can test wether all dimensions of your Tensors add up')
         if n_max < n_out:
@@ -107,6 +127,9 @@ class Zernike_layer(nn.Module):
                 self.Zernike_matrix = torch.tensor(self.Zernicke_matrix_generator(n_max),dtype=torch.float, device = self.device)
 
 
+
+
+
         Matrix_plus = [[[1/2,0],[0,-1/2]],[[0,1/2],[1/2,0]]]
         Matrix_minus_pos =[[[1/2,0],[0,1/2]],[[0,1/2],[-1/2,0]]]
         Matrix_minus_neg =[[[1/2,0],[0,1/2]],[[0,-1/2],[1/2,0]]]
@@ -136,10 +159,17 @@ class Zernike_layer(nn.Module):
             self.In_Lin2 = Multilin(in_channels,intermediate_channels,size,Non_lin=True)
             self.Out_Lin  = Multilin(intermediate_channels,out_channels,size)
     def calc_size(self,n_max):
+        '''
+        Calculating the amount of terms in the Zernike decomposition depending on n. This calculates the amount of radial polinomes, the final decomposition will have size= (calc_size(n),2)
+        '''
         n_max_calc = n_max+1
         lengh = int(((n_max_calc+1)*n_max_calc/2)/2+math.ceil(n_max_calc/4))
         return lengh
     def create_mask_decrease(self,n_max,n_out):
+        '''
+        Creating a mask that is able to convert input of order n_max to output of order n_out, with n_max>n_out
+
+        '''
         n_max_calc = n_max+1
         lengh = int(((n_max_calc+1)*n_max_calc/2)/2+math.ceil(n_max_calc/4))
         mask = torch.ones(lengh, device = self.device)
@@ -153,6 +183,10 @@ class Zernike_layer(nn.Module):
         mask = mask.bool()
         return mask
     def create_mask_increase(self,n_max,n_out):
+        '''
+        Creating a mask that is able to convert input of order n_max to output of order n_out, with n_max<n_out
+
+        '''
         n_out_calc = n_out+1
         n_max_calc = n_max+1
         lengh = int(((n_out_calc+1)*n_out_calc/2)/2+math.ceil(n_out_calc/4))
@@ -169,12 +203,10 @@ class Zernike_layer(nn.Module):
         #mask = mask.bool()
         return mask
     def Radial_function(self,n,m, n_max):
+        '''
+        Creating the representation of the radial functions in terms of polynomials
+        '''
         faktor = []
-        '''
-        scaling = []
-        for i in range(n_max+n_max+1):
-            scaling.append(1/((2*n_max-i)**2+2))
-        '''
         for i in range(n_max-n):
             faktor.append(0)
 
@@ -187,34 +219,31 @@ class Zernike_layer(nn.Module):
         for i in range(m):
             faktor.append(0)
 
-        #print('hi')
-        #print(np.shape(scale))
         norm = self.Zernike_normalization[n][m]
-        #print(np.shape(norm))
-        #print(np.shape(faktor))
         faktor = np.array(faktor)
         faktor = faktor/norm
-        #scale = np.einsum('i,i', scaling,scale)
-
-        #faktor = np.array(faktor/scale)
         return np.flip(faktor)
 
 
 
 
     def Radial_function_matrix(self,m, n_max):
-        #scaling = []
+        '''
+        Creating a Matrix that transforms any valid polinomial to it's represantation in terms of Radial polinomials of given Order m.
+        Valid polynomials a_i r**i are gives by a_i = 0 for all i<m and a_i = 0 for all i-m not even.
+
+        This is done by creating a matrix relating all polinomials in question to their representation in terms of powers of r up to i=n_max.
+        This matrix is then numerically inverted to have it point from the space of powers of r to the space of Radial polinomials.
+        All powers of r which are zero by the rules given above are filled with a one on the diagonal. This is done so the matrix is still invertable, yet has no impact on the final output.
+
+        '''
         matrix = None
         matrix = []
         empty = np.zeros(n_max+1)
         for i in range(m):
             empty *=0
             empty[n_max-i] = 1
-            ##print('hi',empty)
             matrix.append(empty.copy())
-        ##print(matrix)
-        #for i in range(n_max+n_max+1):
-        #    scaling.append(1/((2*n_max-i)**2+2))
         for n in range(m,n_max+1,2):
             faktor = []
             for i in range(int((n_max-n))):
@@ -226,9 +255,6 @@ class Zernike_layer(nn.Module):
 
             for i in range(m):
                 faktor.append(0)
-            #scale = convolve(faktor,faktor)
-            #print(np.shape(scale))
-            #scale = np.einsum('i,i', scaling,scale)
             norm = self.Zernike_normalization[n][m]
             faktor = np.array(faktor)/norm
 
@@ -238,20 +264,26 @@ class Zernike_layer(nn.Module):
                 empty *=0
                 empty[n_max-n-1] = 1
                 matrix.append(empty.copy())
-        ##print(matrix)
-
-        ##print(scaling)
         matrix = (np.rot90(numpy.vstack(np.array(matrix))))
-        #matrix = np.where(matrix>0.0000000000001, matrix,0)
-        #print('done')
 
         return scipy.linalg.solve_triangular(matrix, np.identity(n_max+1))
     def Multiply(self,x,y,n_max):
-        # fix, work in no zero space
+        '''
+        Multiplying two polinmoials in terms of powers of r may be done by np.convolve. Yet, our polynomials are ordered in a way that is inverted in regards to how convolve expects them.
+        '''
         x = np.flip(x)
         y = np.flip(y)
         return np.flip(convolve(x,y)[-n_max-1:])
     def Calculate_matrix_coefficients(self,m1,m2,n1,n2,n_max):
+        '''
+        Creating one line of the final Matrix. It calculates the output of (n1,m1) and (n2,m2) being multiplied to each other. For this,
+        1) The polynomials are encoded to their respective representation in powers of r
+        2) Both get multiplied to each other
+        3) The respective proper matrices to convert the terms in powers of r to the Radial polynomials of the proper m are created; and multiplied to the output of step 2)
+        4) They get placed in the proper place in the global matrix. For the m1-m2 terms, we seperate the terms with m1 > m2, m1 = m2 and m1 < m2, as they lead to different final outputs.
+
+
+        '''
         In1 = self.Radial_function(n1,m1,n_max)
         In2 = self.Radial_function(n2,m2,n_max)
         Mult = self.Multiply(In1,In2,n_max)
@@ -321,14 +353,15 @@ class Zernike_layer(nn.Module):
         return out
 
     def Zernicke_matrix_generator(self,n_max):
+        '''
+        Iterating over all pairs of inputs to generate the full conversion matrix
+
+        '''
         n_max_calc = n_max+1
         lengh = int(((n_max_calc+1)*n_max_calc/2)/2+math.ceil(n_max_calc/4))
         grid = np.zeros((lengh,lengh,lengh,4))
         for m1 in range(0, n_max+1):
             m1_lengh = lengh - int(((n_max_calc-m1+1)*(n_max_calc-m1)/2)/2+math.ceil((n_max_calc-m1)/4))
-            #print(lengh)
-            #print(((n_max_calc-m1+1)*(n_max_calc-m1)/2)/2+math.ceil((n_max_calc-m1)/4))
-            #print(m1_lengh)
             for m2 in range(0, n_max+1):
                 m2_lengh = lengh - int(((n_max_calc-m2+1)*(n_max_calc-m2)/2)/2+math.ceil((n_max_calc-m2)/4))
                 count1=0
@@ -346,31 +379,9 @@ class Zernike_layer(nn.Module):
         y = (x**2+z**2)
         return np.where(y<1,1,0)
 
-    '''
-    def Calc_norm(self,input,m):
-
-        grid_extend = 1
-        #grid_resolution = 680
-        z = x = np.linspace(-grid_extend, grid_extend, 128)
-        z, x = np.meshgrid(z, x)
-
-        #print(Zernike_functions)
-        # Use epsilon to avoid division by zero during angle calculations
-        functions = numpy.polynomial.polynomial.Polynomial(input)
-
-        eps = np.finfo(float).eps
-        out=(functions(np.sqrt((x ** 2 + z ** 2)))*np.cos(m*np.arctan2(x , (z + eps))))#,functions(np.sqrt((x ** 2 + z ** 2)))*np.sin(m*np.arctan2(x ,(z  + eps)))])
-        #print(out[0])
-        # Add restriction to r<1
-        out_mask = self.mask(x,z)
-        out = torch.tensor(out*out_mask)
-
-        norm = (torch.sum(torch.abs(out),dim= (-1,-2),keepdim = False)).item()
-        return norm
-    '''
     def create_zero_mask(self,n_max):
         '''
-        The Zerinke Product will per definition output 0 for all Terms with m=0 and a sin function. In fact, these terms don't even exist for the decomposition, as they are proportonal to sin(mx)=sin(0*x).
+        The Zernike Product will per definition output 0 for all Terms with m=0 and a sin function. In fact, these terms don't even exist for the decomposition, as they are proportonal to sin(mx)=sin(0*x).
         While the output of the product will set the to zero, the linear layers may not do so, if there is a bias involved. At the moment, there is none, yet it seems wise to make completely sure nothing of the kind is happening to preserve equivariance.
         '''
         n_max_calc = n_max+1
@@ -379,52 +390,58 @@ class Zernike_layer(nn.Module):
         for i in range(0,(n_max//2)+1):
             mask[i,1] = 0
         return mask
+
+
+
     def forward(self,in1,in2):
-        #print('size')
-        #print(in1.size())
-        #print(in2.size())
-        '''
-        self.input1_expand[:,:,self.in_mask] = in1
-        self.input2_expand[:,:,self.in_mask] = in2
-        in1 = self.input1_expand
-        in2 = self.input2_expand
-        '''
         if self.increase_in1:
+            '''
+            Increasing size of input 1 in case it needs to
+            '''
             in1 = torch.einsum('ij,...jk->...ik',self.in_mask_1,in1)
         if self.increase_in2:
+            '''
+            Increasing size of input 2 in case it needs to
+            '''
             in2 = torch.einsum('ij,...jk->...ik',self.in_mask_2,in2)
-        #print(in1.size())
-        #print(in2.size())
-        #print('size')
         if self.multichanneled:
+            '''
+            If there are multiple channels, we first apply a linear layer along the channel dimension. The nonlinearity gets called within the linear layer
+            '''
             in1 = self.In_Lin1(in1)
             in2 = self.In_Lin2(in2)
+        '''
+        We explicitely set all terms of m =-0 to zero
+        '''
         in1 = torch.einsum('ij,...ij->...ij',self.zero_mask,in1)
         in2 = torch.einsum('ij,...ij->...ij',self.zero_mask,in2)
+        '''
+        We multiply our inputs to the Zernike matrix. A weight Matrix is added that is able to learn what interactions the model is supposed to favor
+        '''
         out = torch.einsum('...im,ijkl,ij,...jn->...klmn', in1,self.Zernike_matrix,self.weight,in2)
         # Do not put anything inbetween, as it might break equivariance
+        '''
+        We collapse the four different channels that correspond to the different cases considered above to their representation in +- m.
+        '''
         out = torch.einsum('lamn,...klmn->...ka', self.transform,out)
         if not self.last_layer:
+            '''
+            Afterwards, we call a Non-linearity
+            '''
             out = self.Nonlin(out)
-        #print(out.size())
-        #print(out[0,100:150,0])
-        #print('middle')
-        #print(out[0,-50:-1,0])
-        #print('stop')
         if self.multichanneled and not self.last_layer:
+            '''
+            Finally, one more linear layer along channel dimension
+            '''
             out = self.Out_Lin(out)
         if self.reduce:
+            '''
+            If the output size is smaller then one of the input sizes, we need to consider only the output terms of interest
+            '''
             out = out[:,:,self.out_mask,:]
-        #print(out.size())
-
         return out
 
 
-
-
-##############################################################################################################################################################################################
-##This is implemented in a way that is insanely stupid, and should seriously be rebuilt!
-#####################################################################################################################################################################################
 '''
 
            __n__n__
@@ -442,6 +459,12 @@ A cow (her name is Renata) to improve Code beauty for this terribly coded class
 
 '''
 class Zernike_Norms(nn.Module):
+    '''
+    As the normalization of the polinomials depends on the image size, the norm is calculated numerically here.
+    Normalizing all filters to the same value is useful, as it allows us to recrate images by simply adding the filters*coefficients up.
+    Not having them normalized leads to an overrepresentation of filters of higher norm.
+
+    '''
     def __init__(self, n_max = 30 ):
         super().__init__()
         self.norm_output = self.calc_norms(n_max)
@@ -450,9 +473,6 @@ class Zernike_Norms(nn.Module):
 
     def Radial_function(self,n,m, n_max):
         faktor = []
-        #scaling = []
-        #for i in range(n_max+n_max+1):
-        #    scaling.append(1/((2*n_max-i)**2+2))
 
         for i in range(n_max-n):
             faktor.append(0)
@@ -465,10 +485,6 @@ class Zernike_Norms(nn.Module):
 
         for i in range(m):
             faktor.append(0)
-        #scale = convolve(faktor,faktor)
-        #cale = np.einsum('i,i', scaling,scale)
-
-        #faktor = np.array(faktor/scale)
         faktor = np.array(faktor)
         return np.flip(faktor)
 
@@ -511,38 +527,16 @@ class Zernike_Norms(nn.Module):
                     #print('None')
                 else:
                     functions[i][j] = (numpy.polynomial.polynomial.Polynomial(Zernike_functions[i][j]))
-
-        eps = np.finfo(float).eps
         out = [[[] for i in range(int((n_max+1)))]for i in range(int((n_max+1)))]
-        #M = self.M_embedding_generator(n_max)
         for i in range(len(Zernike_functions)):
             for j in range(len(Zernike_functions)):
                 out[i][j] = torch.tensor(np.array(functions[i][j](np.sqrt((x ** 2 + z ** 2)))*np.cos(j*np.arctan2(x , (z )))),dtype=torch.float)#,functions[i][j](np.sqrt((x ** 2 + z ** 2)))*np.sin(j*np.arctan2(x ,(z  )))])*self.mask(x,z),dtype=torch.float)
 
-        #print(out[0])
-        # Add restriction to r<1
-        #out_mask = self.mask(x,z)
-        #out = torch.tensor(np.array(out*out_mask),dtype=torch.float)
         norm = [[None for i in range(int((n_max+1)))]for i in range(int((n_max+1)))]
         for i in range(len(Zernike_functions)):
             for j in range(len(Zernike_functions)):
                 norm[i][j] = (torch.sum(torch.abs(out[i][j]),dim= (-1,-2),keepdim = False)).item()
 
-        #print(np.shape(norm))
-        #donkey
-        '''
-        import matplotlib.pyplot as plt
-        out = np.array(out)
-        plt.figure(1)
-        for i in range(1,int(26**2)):
-            plt.subplot(26, 26, i)
-            plt.imshow(out[(i-1)//2,(i-1)%2], origin='lower', extent=(-1, 1, -1, 1))
-            plt.axis('off')
-
-        plt.savefig('zerpic_norm_custom.png')
-        plt.close()
-        '''
         return norm
     def forward(self):
-
         return self.norm_output

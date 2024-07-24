@@ -12,12 +12,12 @@ It contains the following modules:
     A convolutional variational autoencoder using power spherical distribution.
 """
 from .Zernike_layer import (Zernike_layer,Multilin,Lintrans3)
-from .convolutional_decoder import ConvolutionalDecoder
+from .zernike_decoder import ConvolutionalDecoder
 from .convolutional_decoder_224 import ConvolutionalDecoder224
 from .convolutional_decoder_256 import ConvolutionalDecoder256
-from .convolutional_encoder import ConvolutionalEncoder
+from .zernike_encoder import ConvolutionalEncoder
 from .rotational_autoencoder import RotationalAutoencoder
-from .rotational_variational_autoencoder_power import (
+from .zernike_autoencoder import (
     RotationalVariationalAutoencoderPower,
 )
 from .spherinator_module import SpherinatorModule

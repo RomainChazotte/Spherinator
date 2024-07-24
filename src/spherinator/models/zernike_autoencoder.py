@@ -1,39 +1,25 @@
+import argparse
 import math
+import random
 
+import numpy
+import numpy as np
+import scipy
+import scipy.special as sp
+import seaborn as sns
 import torch
 import torch.linalg
 import torch.nn as nn
 import torch.nn.functional as F
-from power_spherical import HypersphericalUniform, PowerSpherical
-from torch.optim import Adam
 import torchvision.transforms.v2.functional as functional
-
-from .convolutional_decoder import ConvolutionalDecoder
-from .convolutional_encoder import ConvolutionalEncoder
-from .spherinator_module import SpherinatorModule
-
-
-from scipy.constants import physical_constants
-import scipy.special as sp
-import seaborn as sns
-import numpy as np
-import argparse
-
-import numpy
-import numpy as np
 from numpy import convolve
-import scipy
-import math
-import torch
-import torch.nn as nn
+from power_spherical import HypersphericalUniform, PowerSpherical
+from scipy.constants import physical_constants
+from torch.optim import Adam
 
-import torch.nn.functional as F
-
-import random
-
-
-# Take out this import
-#import matplotlib.pyplot as plt
+from .spherinator_module import SpherinatorModule
+from .zernike_decoder import ConvolutionalDecoder
+from .zernike_encoder import ConvolutionalEncoder
 
 
 class RotationalVariationalAutoencoderPower(SpherinatorModule):
@@ -62,8 +48,6 @@ class RotationalVariationalAutoencoderPower(SpherinatorModule):
 
         self.encoder = encoder
         self.decoder = decoder
-        #self.encoder = ConvolutionalEncoder(),
-        #self.decoder = ConvolutionalDecoder(),
         self.h_dim = h_dim
         self.z_dim = z_dim
         self.image_size = image_size
@@ -75,7 +59,7 @@ class RotationalVariationalAutoencoderPower(SpherinatorModule):
         self.total_input_size = self.input_size * self.input_size * 3
 
         self.example_input_array = torch.randn(1, 3, self.input_size, self.input_size)
-        self.Zernike_size = lengh = int(((33+1)*33/2)/2+math.ceil(33/4))
+        self.Zernike_size = int(((33+1)*33/2)/2+math.ceil(33/4))
         self.fc_location = nn.Linear(h_dim, z_dim)
         self.fc_scale = nn.Linear(h_dim, 1)
         self.fc2 = nn.Linear(z_dim, h_dim)
@@ -98,34 +82,11 @@ class RotationalVariationalAutoencoderPower(SpherinatorModule):
     def decode(self, z):
         x = self.decoder(z)
         return x
-        #return z
-    def reparameterize(self, z_location, z_scale):
-        q_z = PowerSpherical(z_location, z_scale)
-        p_z = HypersphericalUniform(self.z_dim, device=z_location.device)
-        return q_z, p_z
 
     def forward(self, x):
-        #print(x.size())
-        #q_z, p_z = self.reparameterize(z_location, z_scale.squeeze())
-        #z = q_z.rsample()
-        #print(z[0])
-        '''
-        pre_model = torch.sum(x,-3)
-        x = self.Embedding_Function(pre_model).unsqueeze(1)
-        '''
         x = self.Embedding_Function(x)
-
-        #print('start')
-        #print(x)
-
         z = self.encode(x)
-        #print('z')
-        #print(z)
-        #print(z.size())
         recon = self.decode(z)
-
-        #return recon, x
-
         return recon,x
 
 
@@ -137,143 +98,11 @@ class RotationalVariationalAutoencoderPower(SpherinatorModule):
             scaled = functional.resize(
                 crop, [self.input_size, self.input_size], antialias=True
             )
-        '''
-        pre_model = torch.sum(scaled,-3)
-        import matplotlib.pyplot as plt
-            #print('hi')
-        reconstruction = self.Embedding_Function(pre_model)
-        reconstruction = self.Decoding_Function(reconstruction)
-        for i in range(30):
-            plt.figure()
-            plt.imshow(pre_model[i].cpu().float().numpy())
-            plt.savefig('prepic_new{}.png'.format(i))
-            plt.close()
-            plt.figure()
-            plt.imshow(reconstruction[i].cpu().float().numpy())
-            plt.savefig('postpic_new{}.png'.format(i))
-            plt.close()
 
-
-        import matplotlib.pyplot as plt
-        #print('hi')
-
-        #print(pre_model.size())
-        #print(x.size())
-        #print('hi')
-
-
-        #reconstruction = self.Decoding_Function(out)
-
-        for i in range(1,50):
-            pre_model = torch.sum(scaled,-3)
-            plt.figure()
-            plt.imshow(pre_model[2].cpu().float().numpy())
-            plt.savefig('prepic_gif{}.png'.format(0))
-            plt.close()
-
-            Embed = Zernike_embedding(i)
-            Reconstruct =  Zernike_decode(i)
-            x = Embed(pre_model)
-            reconstruction = Reconstruct(x)
-
-            plt.figure()
-            plt.imshow(reconstruction[2].cpu().float().numpy())
-            plt.savefig('postpic_gif{}.png'.format(i))
-            plt.close()
-        donkey
-        '''
-        #a = random.randint(3, 19)
-        #print(scaled.size())
         out,x = self.forward(scaled)
-        #print('finishing')
-        #print(out.size())
-        #print(x.size())
-        '''
-        print(out.size())
-        print(x.size())
-        for i in range(10):
-            print(torch.sum(out[0]-out[i]))
-        '''
 
-        #a = 0
-        #if self.optimizers().param_groups[0]["lr"] < 0.001:
-
-        #recon, pre_model = self.forward(scaled)
-        #print('start')
-        #best_scaled_image, _, _, _ = self.find_best_rotation(batch)
-        #print('for testing')
-        #print(out)
         loss = self.criterion(x, out)
-        ##################################################################################################
-        # Try this loss
-        #loss = self.reconstruction_loss(x, out)
-        ###################################################################################################################################
 
-
-
-        #loss_recon = torch.sum(out)- torch.sum(x)
-        #pre_model = torch.sum(scaled,-3)
-        #pre_model = torch.einsum('...jk,ljk->...l',pre_model,self.waves)
-        #reconstruction = self.reconstruct.forward(pre_model.detach().cpu()).float()
-        #pre_reconstruction = self.reconstruct.forward(scaled.detach().cpu()).float()
-        #pre_reconstruction =  torch.sum(scaled,-3).detach().cpu()
-
-
-
-        #if self.optimizers().param_groups[0]["lr"] < 0.001:
-        #loss = loss_recon.mean()
-        #print('Hi')
-        '''
-        if loss < 1.0:
-            #print(x[0,0,0:5],out[0,0,0:5])
-            import matplotlib.pyplot as plt
-            a = random.randint(3, 19)
-            #print('hi')
-
-            plt.figure()
-            plt.imshow((torch.sum(scaled,dim=-3))[0].cpu().float().numpy())
-            plt.savefig('prepica{}.png'.format(a))
-            plt.close()
-
-            reconstruction = self.Decoding_Function(x).squeeze().detach()
-            plt.figure()
-            plt.imshow(reconstruction[0].cpu().float().numpy())
-            plt.savefig('recpica{}.png'.format(a))
-            plt.close()
-            #print(reconstruction[...,50:55,50:55])
-            #print(torch.sum(scaled,dim=-3)[...,50:55,50:55])
-
-            reconstruction = self.Decoding_Function(out).squeeze().detach()
-            plt.figure()
-            plt.imshow(reconstruction[0].cpu().float().numpy())
-            plt.savefig('postpica{}.png'.format(a))
-            plt.close()
-
-            plt.figure()
-            plt.imshow((torch.transpose(scaled,-1,-3))[0].cpu().float().numpy())
-            plt.savefig('prepica{}.png'.format(a))
-            plt.close()
-
-            reconstruction = self.Decoding_Function(x).squeeze().detach()
-            plt.figure()
-            plt.imshow(torch.transpose(reconstruction,-1,-3)[0].cpu().float().numpy())
-            plt.savefig('recpica{}.png'.format(a))
-            plt.close()
-
-            reconstruction = self.Decoding_Function(out).squeeze().detach()
-            plt.figure()
-            plt.imshow(torch.transpose(reconstruction,-1,-3)[0].cpu().float().numpy())
-            plt.savefig('postpica{}.png'.format(a))
-            plt.close()
-        '''
-
-        #loss = loss_recon.mean()
-        '''
-        sum_out = torch.sum(out)
-        sum_rec = torch.sum(x)
-        self.log("Out_sum", sum_out, prog_bar=True)
-        self.log("Rec_sum", sum_rec, prog_bar=True)
-        '''
         self.log("train_loss", loss, prog_bar=True)
         self.log("learning_rate", self.optimizers().param_groups[0]["lr"])
         return loss
@@ -295,14 +124,6 @@ class RotationalVariationalAutoencoderPower(SpherinatorModule):
     def reconstruct(self, coordinates):
         return self.Decoding_Function(self.decode(coordinates))
 
-    def reconstruction_loss(self, images, reconstructions):
-
-        return torch.sqrt(
-            nn.MSELoss(reduction="none")(
-                reconstructions.reshape(-1, self.Zernike_size),
-                images.reshape(-1, self.Zernike_size),
-            ).mean(dim=1)
-        )
 
 
 class Zernike_embedding(nn.Module):
