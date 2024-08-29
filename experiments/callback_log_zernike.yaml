@@ -1,0 +1,5 @@
+trainer:
+  callbacks:
+    - class_path: spherinator.callbacks.LogZernike
+      init_args:
+        num_samples: 6

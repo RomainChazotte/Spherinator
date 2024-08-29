@@ -8,3 +8,5 @@ trainer:
       tags:
         - Zernike model
         - meaningless loss
+        - square net
+        - latent_dim = 14

@@ -20,6 +20,7 @@ from .convolutional_encoder_2 import ConvolutionalEncoder2
 from .rotational2_autoencoder import Rotational2Autoencoder
 from .rotational2_variational_autoencoder_power import \
     Rotational2VariationalAutoencoderPower
+from .rotational_variational_autoencoder_power import RotationalVariationalAutoencoderPower
 from .rotational_autoencoder import RotationalAutoencoder
 from .spherinator_module import SpherinatorModule
 from .zernike_autoencoder import ZernikeAutoencoder

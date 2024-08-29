@@ -48,8 +48,9 @@ class Multilin(nn.Module):
     '''
     def __init__(self, inp,out,size,Non_lin=False):
         super().__init__()
-        self.device = 'cuda:2'
-        self.weight_lin = torch.nn.parameter.Parameter(torch.nn.init.normal_(torch.empty(size,inp,out, device = self.device)))#/np.sqrt(inp))
+        #self.device = 'cuda:2'
+        #self.weight_lin = torch.nn.parameter.Parameter(torch.nn.init.normal_(torch.empty(size,inp,out, device = self.device)))#/np.sqrt(inp))
+        self.weight_lin = torch.nn.parameter.Parameter(torch.nn.init.normal_(torch.empty(size,inp,out)))#/np.sqrt(inp))
         self.Non_lin_bool = Non_lin
         if Non_lin:
             self.Non_lin = Non_linearity()
@@ -62,9 +63,9 @@ class Multilin(nn.Module):
 
 
 class Zernike_layer(nn.Module):
-    def __init__(self, n_max = 30,n_max_2=None, n_out=30, multichanneled = False,in_channels = 1 ,intermediate_channels=1, out_channels =1 ,last_layer = False, fast_test_dimensionality = False,normalize=False, device = 'cuda:2'):
+    def __init__(self, n_max = 30,n_max_2=None, n_out=30, multichanneled = False,in_channels = 1 ,intermediate_channels=1, out_channels =1 ,last_layer = False, fast_test_dimensionality = False,normalize=False):
         super().__init__()
-        self.device = device
+        #self.device = device
         '''
         The core Zernike layer. The final forward method is essentially yust simple matrix multiplication, most of the things happen in preprocessing.
 
@@ -89,13 +90,13 @@ class Zernike_layer(nn.Module):
             Zernike_normalization = Zernike_Norms(n_out)
             self.Zernike_normalization = Zernike_normalization()
             self.increase_in1 = True
-            self.in_mask_1 = self.create_mask_increase(n_max,n_out)
-            self.zero_mask = self.create_zero_mask(n_out)
+            self.in_mask_1 = torch.nn.parameter.Parameter(self.create_mask_increase(n_max,n_out),requires_grad=False)
+            self.zero_mask = torch.nn.parameter.Parameter(self.create_zero_mask(n_out),requires_grad=False)
             out_size= self.calc_size(n_out)
             if fast_test_dimensionality:
-                self.Zernike_matrix = torch.zeros(out_size,out_size,out_size,4, device = self.device)
+                self.Zernike_matrix = torch.nn.parameter.Parameter(torch.zeros(out_size,out_size,out_size,4),requires_grad=False)
             else:
-                self.Zernike_matrix = torch.tensor(self.Zernicke_matrix_generator(n_out),dtype=torch.float, device = self.device)
+                self.Zernike_matrix = torch.nn.parameter.Parameter(torch.tensor(self.Zernicke_matrix_generator(n_out),dtype=torch.float),requires_grad=False)
             size = self.calc_size(n_out)
 
         self.increase_in2 = False
@@ -109,41 +110,41 @@ class Zernike_layer(nn.Module):
                 self.Zernike_normalization = Zernike_normalization()
                 out_size= self.calc_size(n_out)
                 if fast_test_dimensionality:
-                    self.Zernike_matrix = torch.zeros(out_size,out_size,out_size,4, device = self.device)
+                    self.Zernike_matrix = torch.nn.parameter.Parameter(torch.zeros(out_size,out_size,out_size,4),requires_grad=False)
                 else:
-                    self.Zernike_matrix = torch.tensor(self.Zernicke_matrix_generator(n_out),dtype=torch.float, device = self.device)
+                    self.Zernike_matrix = torch.nn.parameter.Parameter(torch.tensor(self.Zernicke_matrix_generator(n_out),dtype=torch.float),requires_grad=False)
                 size = self.calc_size(n_out)
             self.increase_in2 = True
-            self.in_mask_2 = self.create_mask_increase(n_max_2,n_out)
-            self.zero_mask = self.create_zero_mask(n_out)
+            self.in_mask_2 = torch.nn.parameter.Parameter(self.create_mask_increase(n_max_2,n_out),requires_grad=False)
+            self.zero_mask = torch.nn.parameter.Parameter(self.create_zero_mask(n_out),requires_grad=False)
         if self.increase_in1 == False and self.increase_in2 == False:
             size = self.calc_size(n_max)
             Zernike_normalization = Zernike_Norms(n_max)
             self.Zernike_normalization = Zernike_normalization()
-            self.zero_mask = self.create_zero_mask(n_max)
+            self.zero_mask = torch.nn.parameter.Parameter(self.create_zero_mask(n_max),requires_grad=False)
             if fast_test_dimensionality:
-                self.Zernike_matrix = torch.zeros(size,size,size,4, device = self.device)
+                self.Zernike_matrix = torch.nn.parameter.Parameter(torch.zeros(size,size,size,4),requires_grad=False)
             else:
-                self.Zernike_matrix = torch.tensor(self.Zernicke_matrix_generator(n_max),dtype=torch.float, device = self.device)
+                self.Zernike_matrix = torch.nn.parameter.Parameter(torch.tensor(self.Zernicke_matrix_generator(n_max),dtype=torch.float),requires_grad=False)
 
 
 
 
 
         Matrix_plus = [[[1/2,0],[0,-1/2]],[[0,1/2],[1/2,0]]]
-        Matrix_minus_pos =[[[1/2,0],[0,1/2]],[[0,1/2],[-1/2,0]]]
-        Matrix_minus_neg =[[[1/2,0],[0,1/2]],[[0,-1/2],[1/2,0]]]
+        Matrix_minus_pos =[[[1/2,0],[0,1/2]],[[0,-1/2],[1/2,0]]]
         Matrix_minus_neut =[[[1/2,0],[0,1/2]],[[0,0],[0,0]]]
-        self.transform = torch.tensor(np.array([Matrix_plus,Matrix_minus_pos,Matrix_minus_neut,Matrix_minus_neg]),dtype=torch.float, device = self.device)
+        Matrix_minus_neg =[[[1/2,0],[0,1/2]],[[0,1/2],[-1/2,0]]]
+        self.transform = torch.nn.parameter.Parameter(torch.tensor(np.array([Matrix_plus,Matrix_minus_pos,Matrix_minus_neut,Matrix_minus_neg]),dtype=torch.float),requires_grad=False)
         if normalize:
             self.Nonlin = Non_linearity(normalize=True)
         else:
             self.Nonlin = Non_linearity(normalize=False)
-        self.weight = torch.nn.parameter.Parameter(torch.nn.init.normal_(torch.empty(size,size, device = self.device))/size)
+        self.weight = torch.nn.parameter.Parameter(torch.nn.init.normal_(torch.empty(size,size)))#/size)
         self.reduce = False
         if n_max > n_out:
             self.reduce = True
-            self.out_mask = self.create_mask_decrease(n_max,n_out)
+            self.out_mask = torch.nn.parameter.Parameter(self.create_mask_decrease(n_max,n_out),requires_grad=False)
         self.last_layer = last_layer
         self.multichanneled = False
         if multichanneled != False:
@@ -172,7 +173,7 @@ class Zernike_layer(nn.Module):
         '''
         n_max_calc = n_max+1
         lengh = int(((n_max_calc+1)*n_max_calc/2)/2+math.ceil(n_max_calc/4))
-        mask = torch.ones(lengh, device = self.device)
+        mask = torch.ones(lengh)
         for m1 in range(0, n_max+1):
             m1_lengh = lengh - int(((n_max_calc-m1+1)*(n_max_calc-m1)/2)/2+math.ceil((n_max_calc-m1)/4))
             count=0
@@ -191,7 +192,7 @@ class Zernike_layer(nn.Module):
         n_max_calc = n_max+1
         lengh = int(((n_out_calc+1)*n_out_calc/2)/2+math.ceil(n_out_calc/4))
         lengh_in = int(((n_max_calc+1)*n_max_calc/2)/2+math.ceil(n_max_calc/4))
-        mask = torch.zeros(lengh,lengh_in, device = self.device)
+        mask = torch.zeros(lengh,lengh_in)
         for m1 in range(0, n_out+1):
             m1_lengh = lengh - int(((n_out_calc-m1+1)*(n_out_calc-m1)/2)/2+math.ceil((n_out_calc-m1)/4))
             count=0
@@ -386,7 +387,7 @@ class Zernike_layer(nn.Module):
         '''
         n_max_calc = n_max+1
         lengh = int(((n_max_calc+1)*n_max_calc/2)/2+math.ceil(n_max_calc/4))
-        mask = torch.ones(lengh,2, device = self.device)
+        mask = torch.ones(lengh,2)
         for i in range(0,(n_max//2)+1):
             mask[i,1] = 0
         return mask
@@ -424,6 +425,8 @@ class Zernike_layer(nn.Module):
         We collapse the four different channels that correspond to the different cases considered above to their representation in +- m.
         '''
         out = torch.einsum('lamn,...klmn->...ka', self.transform,out)
+        #print(out)
+        #print('hi2')
         if not self.last_layer:
             '''
             Afterwards, we call a Non-linearity
