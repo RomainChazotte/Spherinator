@@ -9,4 +9,6 @@ trainer:
         - Zernike model
         - meaningless loss
         - square net
-        - latent_dim = 14
+        - latent_dim = 2
+        - learning rate 0.005
+        - Improved numerical stability

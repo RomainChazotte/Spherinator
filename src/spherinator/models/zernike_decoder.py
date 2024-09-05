@@ -8,19 +8,21 @@ import torch.nn.functional as F
 from .Zernike_layer import Lintrans3, Multilin, Zernike_layer
 
 
-class ZernikeDecoder(pl.LightningModule):
-    def __init__(self, n_in, n_output, num_channels):
+class ZernikeDecoder(nn.Module):
+    def __init__(self, n_in, n_output, num_channels,device):
         super().__init__()
         test_dimens = False
 
         n_max = n_output
-        self.Product0 = Zernike_layer( n_max = 2,n_max_2=2, n_out=4, multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens)
+        self.Product00 = Zernike_layer( n_max = 1,n_max_2=1, n_out=2, multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)
 
-        self.Product1 = Zernike_layer( n_max = 4,n_max_2=4, n_out=8, multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens)
+        self.Product0 = Zernike_layer( n_max = 2,n_max_2=2, n_out=4, multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)
+
+        self.Product1 = Zernike_layer( n_max = 4,n_max_2=4, n_out=8, multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)
         #self.Input1 =  torch.nn.parameter.Parameter(Init_zero(num_channels,n_in))
 
         n_max = n_in
-        self.Product2 = Zernike_layer( n_max = 8, n_out=16, multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens)
+        self.Product2 = Zernike_layer( n_max = 8, n_out=16, multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)
         #self.Input2 =  torch.nn.parameter.Parameter(Init_zero(num_channels,n_max))
 
         size = self.Product2.calc_size(n_output)
@@ -28,11 +30,16 @@ class ZernikeDecoder(pl.LightningModule):
         self.Lin_2 = Multilin(num_channels,num_channels,size,Non_lin=True)
 
         n_max = n_in
-        self.Product3 = Zernike_layer( n_max = 16, n_out=32, multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens)
+        self.Product3 = Zernike_layer( n_max = 16, n_out=32, multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)
 
-        self.Product4 = Zernike_layer( n_max = 32, n_out=32, multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens)
+        self.Product4 = Zernike_layer( n_max = 32, n_out=32, multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)
 
-        self.Product5 = Zernike_layer( n_max = 32, n_out=32, multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =3 ,fast_test_dimensionality=test_dimens)
+        self.Product5 = Zernike_layer( n_max = 32, n_out=32, multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =3 ,fast_test_dimensionality=test_dimens, device = device)
+        '''
+        self.Product6 = Zernike_layer( n_max = 32, n_out=32, multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)
+
+        self.Product7 = Zernike_layer( n_max = 32, n_out=32, multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =3 ,fast_test_dimensionality=test_dimens, device = device)
+        '''
         #self.Input3 =  torch.nn.parameter.Parameter(Init_zero(num_channels,n_max))
     def forward(self, x) -> torch.tensor:
         eps = 0.0000000000000000000001
@@ -40,6 +47,11 @@ class ZernikeDecoder(pl.LightningModule):
         #print(torch.sum(torch.abs(x),dim =(-1,-2))[0,0:2])
         x = self.Lin_2(self.Lin_1(x))
         #print(torch.sum(torch.abs(x),dim =(-1,-2))[0,0:2])
+        x = self.Product00(x,x)
+        #print(torch.sum(torch.abs(x),dim =(-1,-2))[0,0:2])
+        a = 1/(torch.sum(torch.abs(x),dim =(-1,-2))+eps)
+        x = torch.einsum('ijkl,ij->ijkl', x,a)
+
         x = self.Product0(x,x)
         #print(torch.sum(torch.abs(x),dim =(-1,-2))[0,0:2])
         a = 1/(torch.sum(torch.abs(x),dim =(-1,-2))+eps)
@@ -64,6 +76,17 @@ class ZernikeDecoder(pl.LightningModule):
         a = 1/(torch.sum(torch.abs(x),dim =(-1,-2))+eps)
         x = torch.einsum('ijkl,ij->ijkl', x,a)
         x = self.Product5(x,x)
+        '''
+
+        a = 1/(torch.sum(torch.abs(x),dim =(-1,-2))+eps)
+        x = torch.einsum('ijkl,ij->ijkl', x,a)
+        x = self.Product6(x,x)
+
+
+        a = 1/(torch.sum(torch.abs(x),dim =(-1,-2))+eps)
+        x = torch.einsum('ijkl,ij->ijkl', x,a)
+        x = self.Product7(x,x)
+        '''
         #print(torch.sum(torch.abs(x),dim =(-1,-2))[0,0:2])
         #print('decode_done')
         #x = x/torch.sum(torch.abs(x),dim =(-1,-2))

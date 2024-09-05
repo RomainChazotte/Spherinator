@@ -4,6 +4,17 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
+
+        {
+            "name": "Python: zernike",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "main.py",
+            "args": "fit -c experiments/zerinator.yaml",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
         {
             "name": "Python: illustris",
             "type": "debugpy",

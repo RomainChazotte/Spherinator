@@ -23,21 +23,21 @@ data:
 optimizer:
   class_path: torch.optim.Adam
   init_args:
-    lr: 0.001
+    lr: 0.005
 
 lr_scheduler:
   class_path: lightning.pytorch.cli.ReduceLROnPlateau
   init_args:
     mode: min
     factor: 0.3
-    patience: 75
+    patience: 50
     cooldown: 5
-    min_lr: 0.0000001
+    min_lr: 0.00000001
     monitor: train_loss
     verbose: True
 
 trainer:
   max_epochs: 700
   accelerator: gpu
-  devices: [0]
+  devices: [2]
   precision: 32
