@@ -10,3 +10,7 @@ docs/html/
 HiPSter/
 lightning_logs/
 wandb/
+experiments/Zernike_norms*
+experiments/Zernike_layer_matrix*
+Zernike_decode_encode*
+*.png
