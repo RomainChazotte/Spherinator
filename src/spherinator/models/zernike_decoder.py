@@ -40,6 +40,9 @@ class ZernikeDecoder(nn.Module):
 
         self.Product7 = Zernike_layer( n_max = 32, n_out=32, multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =3 ,fast_test_dimensionality=test_dimens, device = device)
         '''
+        size = self.Product2.calc_size(n_in)
+        self.output_Lin_1 = Multilin(num_channels,num_channels,size,Non_lin=True)
+        self.output_Lin_2 = Multilin(num_channels,3,size,Non_lin=True)
         #self.Input3 =  torch.nn.parameter.Parameter(Init_zero(num_channels,n_max))
     def forward(self, x) -> torch.tensor:
         eps = 0.0000000000000000000001
@@ -76,6 +79,7 @@ class ZernikeDecoder(nn.Module):
         a = 1/(torch.sum(torch.abs(x),dim =(-1,-2))+eps)
         x = torch.einsum('ijkl,ij->ijkl', x,a)
         x = self.Product5(x,x)
+        #x = self.output_Lin_2(self.output_Lin_1(x))
         '''
 
         a = 1/(torch.sum(torch.abs(x),dim =(-1,-2))+eps)

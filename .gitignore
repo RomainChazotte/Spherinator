@@ -14,3 +14,6 @@ experiments/Zernike_norms*
 experiments/Zernike_layer_matrix*
 Zernike_decode_encode*
 *.png
+t10k-*
+train-images*
+train-labels*

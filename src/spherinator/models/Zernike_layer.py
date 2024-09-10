@@ -1,4 +1,6 @@
 import math
+import os.path
+from importlib.util import LazyLoader
 
 import numpy
 import numpy as np
@@ -6,7 +8,7 @@ import scipy
 import torch
 import torch.nn as nn
 from numpy import convolve
-import os.path
+
 #import lightning.pytorch as pl
 
 
@@ -182,6 +184,10 @@ class Zernike_layer(nn.Module):
             self.In_Lin1 = Multilin(in_channels,intermediate_channels,size,Non_lin=True)
             self.In_Lin2 = Multilin(in_channels,intermediate_channels,size,Non_lin=True)
             self.Out_Lin  = Multilin(intermediate_channels,out_channels,size)
+
+
+
+
     def calc_size(self,n_max):
         '''
         Calculating the amount of terms in the Zernike decomposition depending on n. This calculates the amount of radial polinomes, the final decomposition will have size= (calc_size(n),2)
@@ -434,6 +440,7 @@ class Zernike_layer(nn.Module):
             '''
             in1 = self.In_Lin1(in1)
             in2 = self.In_Lin2(in2)
+
         '''
         We explicitely set all terms of m =-0 to zero
         '''
@@ -442,12 +449,39 @@ class Zernike_layer(nn.Module):
         '''
         We multiply our inputs to the Zernike matrix. A weight Matrix is added that is able to learn what interactions the model is supposed to favor
         '''
-        out = torch.einsum('...im,ijkl,ij,...jn->...klmn', in1,self.Zernike_matrix,self.weight,in2)
+        # out = torch.einsum('...im,ijkl,ij,...jn->...klmn', in1,self.Zernike_matrix,self.weight,in2)
+        # print('zern matrix')
+        # print(torch.cuda.mem_get_info())
+        # Old version
+
+        in1 = torch.einsum('...im,ij,...jn->...ijmn', in1,self.weight,in2)
+
+        in1 = torch.einsum('ijkl,...ijmn->...klmn',self.Zernike_matrix,in1)
+        #improved version
+
+
+        #in1 = in1.transpose(-1,-2)
+        # in1 = ((in1.unsqueeze(-2))*(self.weight.unsqueeze(0).unsqueeze(0).unsqueeze(-1))).unsqueeze(-1)
+        # #in1 = torch.einsum('ij,...im->...ijm',self.weight, in1)
+        # print('zern matrix_ugly')
+        # print(torch.cuda.mem_get_info())
+        # in1 = in1 *(in2.unsqueeze(-3)).unsqueeze(-2)
+        # print('memory of in1')
+        # print(in1.element_size() * in1.nelement())
+        # #in1 = torch.einsum('...ijm,...jn->...ijmn',in1, in2)
+        # print('zern matrix_ugly')
+        # print(torch.cuda.mem_get_info())
+
+        # in1 = torch.einsum('ijkl,...ijmn->...klmn',self.Zernike_matrix,in1)
+        # print('zern matrix2_called_in1')
+        # print(torch.cuda.mem_get_info())
+
+
         # Do not put anything inbetween, as it might break equivariance
         '''
         We collapse the four different channels that correspond to the different cases considered above to their representation in +- m.
         '''
-        out = torch.einsum('lamn,...klmn->...ka', self.transform,out)
+        out = torch.einsum('lamn,...klmn->...ka', self.transform,in1)
         #print(out)
         #print('hi2')
         if not self.last_layer:
@@ -465,6 +499,7 @@ class Zernike_layer(nn.Module):
             If the output size is smaller then one of the input sizes, we need to consider only the output terms of interest
             '''
             out = out[:,:,self.out_mask,:]
+
         return out
 
 
@@ -578,8 +613,7 @@ class Zernike_Norms(nn.Module):
         norm = [[None for i in range(int((n_max+1)))]for i in range(int((n_max+1)))]
         for i in range(len(Zernike_functions)):
             for j in range(len(Zernike_functions)):
-                norm[i][j] = (torch.sum(torch.abs(out[i][j]),dim= (-1,-2),keepdim = False)).item()
-
-        return norm
+                norm[i][j] = torch.sqrt(torch.sum((out[i][j])**2,dim= (-1,-2),keepdim = False)).item()
+        return norm*16
     def forward(self):
         return self.norm_output

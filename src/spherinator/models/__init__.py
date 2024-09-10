@@ -27,10 +27,14 @@ from .zernike_autoencoder import ZernikeAutoencoder
 from .zernike_decoder import ZernikeDecoder
 from .zernike_encoder import ZernikeEncoder
 from .Zernike_layer import Lintrans3, Multilin, Zernike_layer
+from .zernike_classifier import ZernikeClassifier
+from .zernike_encoder_classify import ZernikeEncoderClassify
 
 __all__ = [
     "ZernikeDecoder",
     "ZernikeEncoder",
+    "ZernikeClassifier",
+    "ZernikeEncoderClassify",
     "ConvolutionalDecoder",
     "ConvolutionalDecoder2",
     "ConvolutionalDecoder224",

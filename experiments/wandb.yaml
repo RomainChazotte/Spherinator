@@ -7,8 +7,5 @@ trainer:
       entity: ain-space
       tags:
         - Zernike model
-        - meaningless loss
-        - square net
         - latent_dim = 2
-        - learning rate 0.005
-        - Improved numerical stability
+        - L1 loss
