@@ -40,15 +40,17 @@ class LogZernike(Callback):
             scaled = functional.resize(
                 crop, [pl_module.input_size, pl_module.input_size], antialias=True
             )
-
+            norm = torch.sum(torch.abs(scaled),dim =(-1,-2),keepdim=True)
+            scaled = scaled/norm
             if pl_module.__class__.__name__ == "RotationalAutoencoder":
                 recon, _ = pl_module(scaled)
             else:
                 out,rec = pl_module(scaled)
 
             #loss_recon = pl_module.criterion(out,rec)
-            out = pl_module.Decoding_Function(out)
-            rec = pl_module.Decoding_Function(rec)
+            out = pl_module.Embedding_Function.decode(out)*norm
+            rec = pl_module.Embedding_Function.decode(rec)*norm
+            scaled = scaled*norm
             #print(torch.sum(out,dim=(-1,-2))[0:10])
 
 

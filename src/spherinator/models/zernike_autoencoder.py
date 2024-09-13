@@ -28,8 +28,8 @@ from .zernike_encoder import ZernikeEncoder
 class ZernikeAutoencoder(SpherinatorModule):
     def __init__(
         self,
-        encoder: nn.Module = ZernikeEncoder(32,1,10,device = 'cuda:1'),
-        decoder: nn.Module = ZernikeDecoder(32,1,10,device = 'cuda:1'),
+        encoder: nn.Module = ZernikeEncoder(32,1,10,device = 'cuda:2'),
+        decoder: nn.Module = ZernikeDecoder(32,1,10,device = 'cuda:2'),
         image_size: int = 91,
         input_size: int = 128,
         rotations: int = 36,
@@ -50,7 +50,10 @@ class ZernikeAutoencoder(SpherinatorModule):
 
 
         #print(self.device)
-        device = 'cuda:1'
+        device = 'cuda:2'
+        self.Embedding_Function = Zernike_embedding(32, device, numerical_expand = 16)
+        #decoder = ZernikeDecoder(32,1,10,device = 'cpu')
+        #encoder =  ZernikeEncoder(32,1,10,device = 'cpu')
         self.input_mask= self.mask().to(device)
         self.encoder = encoder
         self.decoder = decoder
@@ -66,8 +69,8 @@ class ZernikeAutoencoder(SpherinatorModule):
 
         self.criterion = nn.L1Loss()
         self.criterion2 = nn.MSELoss()
-        self.Embedding_Function = Zernike_embedding(32, device)
-        self.Decoding_Function =  Zernike_decode(32, device)
+        #self.Embedding_Function = Zernike_embedding(32, device, numerical_expand = 16)
+        #self.Decoding_Function =  Zernike_decode(32, device)
 
 
     def get_input_size(self):
@@ -83,12 +86,13 @@ class ZernikeAutoencoder(SpherinatorModule):
         x = self.decoder(z)
         return x
 
-    def forward(self, x):
+    def forward(self, picture):
         #sum_in = torch.sum(torch.abs(x),dim=(-1,-2,-3))
 
         #print(torch.cuda.mem_get_info())
         #print('encode')
-        x = self.Embedding_Function(x)
+        with torch.no_grad():
+            x = self.Embedding_Function.embed(picture)
         #print(torch.cuda.mem_get_info())
         #import pdb
         #breakpoint()
@@ -99,10 +103,17 @@ class ZernikeAutoencoder(SpherinatorModule):
         print(x.detach()[0,:,0:3])
         print(y.detach()[0,:,0:3])
         '''
+
+        # with torch.no_grad():
+        #     print(torch.sum(torch.abs(x)))
         z = self.encode(x)
+        # with torch.no_grad():
+        #     print(torch.sum(torch.abs(z)))
         #print('encoding_layer')
         #print(torch.cuda.mem_get_info())
         recon = self.decode(z)
+        # with torch.no_grad():
+        #     print(torch.sum(torch.abs(recon)))
         #print('decoded')
         #print(torch.cuda.mem_get_info())
         #sum_out = torch.sum(torch.abs(recon),dim=(-1,-2,-3))
@@ -112,42 +123,23 @@ class ZernikeAutoencoder(SpherinatorModule):
 
 
     def training_step(self, batch, batch_idx):
-
-        '''
-        output = torch.rot90(self.Decoding_Function(self.forward(batch)[0]), k=1, dims=[-2, -1])
-        output_rot = self.Decoding_Function(self.forward(torch.rot90(batch, k=1, dims=[-2, -1]))[0])
-        output_sum = torch.sum(output)
-        output_sum_rot = torch.sum(output_rot)
-        print(output[0,0,45:48,45:48])
-        print(output_rot[0,0,45:48,45:48])
-        print(output_sum/output_sum_rot)
-        a = random.randint(1,25)
-        if a == 20:
-            for i in range(10):
-                import matplotlib.pyplot as plt
-                plt.figure()
-                plt.imshow(torch.transpose(output[i],0,-1).detach().cpu().float().numpy())
-                plt.savefig('prepic_new{}.png'.format(i))
-                plt.close()
-                plt.figure()
-                plt.imshow(torch.transpose(output_rot[i],0,-1).detach().cpu().float().numpy())
-                plt.savefig('postpic_new{}.png'.format(i))
-                plt.close()
-        '''
+        #torch.autograd.set_detect_anomaly(True)
 
         with torch.no_grad():
             crop = functional.center_crop(batch, [self.crop_size, self.crop_size])
             picture = functional.resize(
                 crop, [self.input_size, self.input_size], antialias=True
             )
+            picture = torch.einsum('...ij,ij->...ij',picture,self.input_mask)
+            picture = picture/torch.sum(torch.abs(picture),dim =(-1,-2),keepdim=True)
         #sum_in = torch.sum(torch.abs(picture),dim=(-1,-2,-3))
         #picture = picture/sum_in
-        picture = torch.einsum('...ij,ij->...ij',picture,self.input_mask)
+
         #print( torch.sum(torch.abs(picture),dim=(-1,-2),keepdim=True)[0])
         #picture = picture/norm
         out,x = self.forward(picture)
 
-        lr = self.optimizers().param_groups[0]["lr"]
+        #lr = self.optimizers().param_groups[0]["lr"]
         #loss = self.criterion(self.Decoding_Function(out),picture)
 
 
@@ -162,28 +154,32 @@ class ZernikeAutoencoder(SpherinatorModule):
         #input_picture = self.Decoding_Function(x)
         #norm = torch.sum(torch.abs(picture),dim=(-1,-2),keepdim=True)
 
-        out_pic = self.Decoding_Function(out)
-
+        with torch.no_grad():
+            #print(torch.sum(torch.abs(x)), torch.sum(torch.abs(out)))
+            out_pic = self.Embedding_Function.decode(out)
+            #rec_pic = self.Embedding_Function.decode(x)
+            #print(torch.sum(torch.abs(picture)), torch.sum(torch.abs(out_pic)), torch.sum(torch.abs(rec_pic)))
 
 
         #out_norm = torch.sum(torch.abs(out_pic),dim=(-1,-2),keepdim=True)
         #out_pic = out_pic*norm/out_norm
 
 
-        # # #loss = self.criterion(out_pic, input_picture)
+        #loss = self.criterion(out_pic, input_picture)
         # if lr <   0.0002:
 
         #     loss = self.criterion(input_picture,out_pic)
         # else:
         #     loss = self.criterion2(input_picture,out_pic)
 
-
-        loss = self.criterion(x, out)
+        #out_pic = self.Embedding_Function.decode(out)
+        #loss = self.criterion(out_pic, picture)*1000
+        loss = self.criterion(x, out)*1000
 
         #loss = torch.mean(torch.square(out_pic-input_picture),dim=(-1,-2,-3))
         #loss = torch.mean(loss)
         self.log("train_loss", loss, prog_bar=True)
-        self.log("image_loss", self.criterion(out_pic, picture), prog_bar=True)
+        self.log("image_loss", self.criterion(out_pic, picture)*1000, prog_bar=True)
         self.log("learning_rate", self.optimizers().param_groups[0]["lr"])
         return loss
 
@@ -217,10 +213,10 @@ class ZernikeAutoencoder(SpherinatorModule):
         return torch.tensor(y)
 
 class Zernike_embedding(nn.Module):
-    def __init__(self, n_max = 30 , device = 'cuda:2' ):
+    def __init__(self, n_max = 30 , device = 'cuda:2', numerical_expand = 16 ):
         super().__init__()
-
-        if os.path.isfile('Zernike_decode_encode{}'.format(n_max)):
+        self.num = numerical_expand
+        if os.path.isfile('Zernike_decode_encode{}'.format(n_max)) :
             self.Zernike_matrix = torch.load('Zernike_decode_encode{}'.format(n_max))
         else:
             self.Zernike_matrix = self.create_filter(n_max)
@@ -229,7 +225,8 @@ class Zernike_embedding(nn.Module):
 
 
         #self.Zernike_matrix = self.create_filter(n_max)
-        self.Zernike_matrix = self.Zernike_matrix.to(device)
+        self.Zernike_matrix = self.Zernike_matrix.to(device)*16
+        #self.norm_matrix = np.array(self.norm_matrix)
         #self.Zernike_matrix= torch.nn.parameter.Parameter(self.Zernike_matrix,requires_grad=False)
         #self.device = 'cuda:2'
     def calc_size(self,n_max):
@@ -295,7 +292,7 @@ class Zernike_embedding(nn.Module):
 
         grid_extend = 1
         #grid_resolution = 680
-        z = x = np.linspace(-grid_extend, grid_extend, 2048)
+        z = x = np.linspace(-grid_extend, grid_extend, int(128*self.num))
         z, x = np.meshgrid(z, x)
 
         #print(Zernike_functions)
@@ -312,171 +309,36 @@ class Zernike_embedding(nn.Module):
             out.append([functions[i](np.sqrt((x ** 2 + z ** 2)))*np.cos(M[i]*np.arctan2(x , (z ))),functions[i](np.sqrt((x ** 2 + z ** 2)))*np.sin(M[i]*np.arctan2(x ,(z  )))])
         #print(out[0])
         # Add restriction to r<1
-        out_mask = self.mask(x,z)
-        out = torch.tensor(np.array(out*out_mask),dtype=torch.float)#, device =  'cuda:2')
+        #out_mask = self.mask(x,z)
+        #out = torch.tensor(np.array(out*out_mask),dtype=torch.float)#, device =  'cuda:2')
 
-        norm = []
-        for i in range(len(Zernike_functions)):
-            norm.append([functions[i](np.sqrt((x ** 2 + z ** 2)))*np.cos(M[i]*np.arctan2(x , (z )))+eps,functions[i](np.sqrt((x ** 2 + z ** 2)))*np.sin(M[i]*np.arctan2(x ,(z  )))+eps])
+        # norm = []
+        # for i in range(len(Zernike_functions)):
+        #     norm.append([functions[i](np.sqrt((x ** 2 + z ** 2)))*np.cos(M[i]*np.arctan2(x , (z )))+eps,functions[i](np.sqrt((x ** 2 + z ** 2)))*np.sin(M[i]*np.arctan2(x ,(z  )))+eps])
 
-        norm = torch.tensor(np.array(norm*out_mask),dtype=torch.float)
+        # norm = torch.tensor(np.array(norm*out_mask),dtype=torch.float)
 
-        norm = torch.sqrt((torch.sum((norm)**2,dim= (-1,-2),keepdim = True)))*16
+        # norm = torch.sqrt((torch.sum((norm)**2,dim= (-1,-2),keepdim = True)))*self.num
 
 
-        out = out/norm
+        # out = out/norm
         out = np.array(out)
-        out = block_reduce(out,(1,1, 16, 16),func=np.sum)
-        #print(np.array(out)[0,0,100:102,100:102])
-        #print('this was encoding')
-        return torch.tensor(out)
+        out =torch.tensor( block_reduce(out,(1,1, self.num, self.num),func=np.sum),dtype=torch.float)
 
-    def forward(self,input):
-        #norm = (torch.sum(torch.abs(self.Zernike_matrix),dim= (-1,-2),keepdim = True))
-        #eps = 0.0000005
-        #self.Zernike_matrix = self.Zernike_matrix/(norm+eps)
-        #This should be implemented in init, do this later
-        #print(self.Zernike_matrix.size())
-        #print(input.size())
+
+        z = x = np.linspace(-grid_extend, grid_extend, int(128))
+        z, x = np.meshgrid(z, x)
+        out_mask = torch.tensor( self.mask(x,z))
+        out= torch.einsum('ijkl,kl->ijkl',out,out_mask)
+
+        norm = torch.sqrt((torch.sum((out)**2,dim= (-1,-2),keepdim = True)))+eps
+        out = out/norm
+        return out#*self.num
+
+    def embed(self,input):
         out = torch.einsum('ijkl,...kl->...ij',self.Zernike_matrix,input)
-        #print(out.size())
-        return out#*100
+        return out
 
-
-
-
-class Zernike_decode(nn.Module):
-    def __init__(self, n_max = 30, device = 'cuda:2' ):
-        super().__init__()
-
-        if os.path.isfile('Zernike_decode_encode{}'.format(n_max)):
-            self.Zernike_matrix = torch.load('Zernike_decode_encode{}'.format(n_max))
-        else:
-            self.Zernike_matrix = self.create_filter(n_max)
-            torch.save(self.Zernike_matrix,'Zernike_decode_encode{}'.format(n_max))
-        #size = self.calc_size(n_max)
-
-        #self.Zernike_matrix = self.create_filter(n_max)
-        #self.Zernike_matrix= torch.nn.parameter.Parameter(self.Zernike_matrix,requires_grad=False)
-        self.Zernike_matrix= self.Zernike_matrix.to(device)
-        #self.device = 'cuda:2'
-
-    def calc_size(self,n_max):
-        n_max_calc = n_max+1
-        lengh = int(((n_max_calc+1)*n_max_calc/2)/2+math.ceil(n_max_calc/4))
-        return lengh
-
-    def M_embedding_generator(self,n_max):
-        n_max_calc = n_max+1
-        lengh = int(((n_max_calc+1)*n_max_calc/2)/2+math.ceil(n_max_calc/4))
-        Basis = np.zeros(lengh)
-        for m1 in range(0, n_max+1):
-            m1_lengh = lengh - int(((n_max_calc-m1+1)*(n_max_calc-m1)/2)/2+math.ceil((n_max_calc-m1)/4))
-            count=0
-            for n1 in range(m1,n_max+1,2):
-                Basis[m1_lengh+count] = m1
-                count+=1
-        return Basis
-
-
-    def Radial_function(self,n,m, n_max):
-        faktor = []
-        scaling = []
-        for i in range(n_max+n_max+1):
-            scaling.append(1/((2*n_max-i)**2+2))
-
-        for i in range(n_max-n):
-            faktor.append(0)
-
-        for k in range(int((n-m)/2+1)):
-            faktor.append((-1)**k * math.factorial(n-k) /(math.factorial(k) * math.factorial(int((n+m)/2-k))* math.factorial(int((n-m)/2-k)))   )
-            if k != int((n-m)/2):
-                faktor.append(0)
-            #exp.append(n-2*k)
-
-        for i in range(m):
-            faktor.append(0)
-        scale = convolve(faktor,faktor)
-        scale = np.einsum('i,i', scaling,scale)
-
-        faktor = np.array(faktor/scale)
-        #faktor = np.array(faktor)
-        return np.flip(faktor)
-
-    def Zernicke_embedding_generator(self,n_max):
-        n_max_calc = n_max+1
-        lengh = int(((n_max_calc+1)*n_max_calc/2)/2+math.ceil(n_max_calc/4))
-        Basis = np.zeros((lengh,n_max+1))
-        for m1 in range(0, n_max+1):
-            m1_lengh = lengh - int(((n_max_calc-m1+1)*(n_max_calc-m1)/2)/2+math.ceil((n_max_calc-m1)/4))
-            count=0
-            for n1 in range(m1,n_max+1,2):
-                Basis[m1_lengh+count,:] = self.Radial_function(n1,m1,n_max)
-                count+=1
-        return Basis
-    def mask(self,x,z):
-        y = (x**2+z**2)
-        return np.where(y<1,1,0)
-
-
-    def create_filter(self,n_max):
-        Zernike_functions = self.Zernicke_embedding_generator(n_max)
-
-        grid_extend = 1
-        #grid_resolution = 680
-        z = x = np.linspace(-grid_extend, grid_extend, 2048)
-
-        z, x = np.meshgrid(z, x)
-
-        #print(Zernike_functions)
-        # Use epsilon to avoid division by zero during angle calculations
-        functions = []
-        for i in range(len(Zernike_functions)):
-
-            functions.append(numpy.polynomial.polynomial.Polynomial(Zernike_functions[i]))
-
-        eps = np.finfo(float).eps
-        out = []
-        M = self.M_embedding_generator(n_max)
-        for i in range(len(Zernike_functions)):
-            out.append([functions[i](np.sqrt((x ** 2 + z ** 2)))*np.cos(M[i]*np.arctan2(x , (z ))),functions[i](np.sqrt((x ** 2 + z ** 2)))*np.sin(M[i]*np.arctan2(x ,(z  )))])
-        #print(out[0])
-        # Add restriction to r<1
-        #print('out')
-        #print(np.shape(np.array(out)))
-        #print(np.array(out)[0,0,200:202,200:202])
-        out_mask = self.mask(x,z)
-        #print('out_mask')
-        #print(out_mask[200:202,200:202])
-        out = torch.tensor(np.array(out*out_mask),dtype=torch.float)
-        norm = []
-        for i in range(len(Zernike_functions)):
-            norm.append([functions[i](np.sqrt((x ** 2 + z ** 2)))*np.cos(M[i]*np.arctan2(x , (z )))+eps,functions[i](np.sqrt((x ** 2 + z ** 2)))*np.sin(M[i]*np.arctan2(x ,(z  )))+eps])
-
-        #print('norm')
-        #print(np.array(norm)[0,0,200:202,200:202])
-        norm = torch.tensor(np.array(norm*out_mask),dtype=torch.float)
-
-        #norm = (torch.sum(torch.abs(norm),dim= (-1,-2),keepdim = True))
-        norm = torch.sqrt(torch.sum((norm)**2,dim= (-1,-2),keepdim = True))*16
-        #print('norm')
-        #print(norm[0])
-        out = out/norm
-
-        out = np.array(out)
-        #print('out')
-        #print(np.shape(np.array(out)))
-        #print(np.array(out)[0,0,200:202,200:202])
-        out = block_reduce(out,(1,1, 16, 16),func=np.sum)
-        #print('out')
-        #print(np.shape(np.array(out)))
-        #print(np.array(out)[0,0,50:52,50:52])
-        return torch.tensor(out)
-
-    def forward(self,input):
-        #norm = (torch.sum(torch.abs(self.Zernike_matrix),dim= (-1,-2),keepdim = True))
-        #eps = 0.0000005
-        #self.Zernike_matrix = self.Zernike_matrix/(norm+eps)
-        #This should be implemented in init, do this later
+    def decode(self,input):
         out = torch.einsum('ijkl,...ij->...kl',self.Zernike_matrix,input)
-        return out#*100
+        return out

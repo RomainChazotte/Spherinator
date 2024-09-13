@@ -47,53 +47,103 @@ class ZernikeDecoder(nn.Module):
     def forward(self, x) -> torch.tensor:
         eps = 0.0000000000000000000001
         #print('decode')
-        #print(torch.sum(torch.abs(x),dim =(-1,-2))[0,0:2])
+        #print(torch.sqrt(torch.sum(torch.square(x),dim =(-1,-2))[0,0:2])
         x = self.Lin_2(self.Lin_1(x))
-        #print(torch.sum(torch.abs(x),dim =(-1,-2))[0,0:2])
+        # print(torch.isnan(x).any())
+        # print(torch.min(x))
+        # print(torch.max(x))
+
+        #print(torch.sqrt(torch.sum(torch.square(x),dim =(-1,-2))[0,0:2])
+        # print('decode')
+        # a = (torch.sum(torch.sqrt(torch.sum(torch.square(x),dim =(-1),keepdim=False)),dim=-1)+eps)
+        # print(a)
+        # #a = torch.where(a>0.1,a,1)
+        # al = 1/a
+        # x = torch.einsum('ijkl,ij->ijkl', x,al)
+
+        # a = (torch.sum(torch.sqrt(torch.sum(torch.square(x),dim =(-1),keepdim=False)),dim=-1)+eps)
+        # print(a)
+        # print('normalized')
+        a = 1/(torch.sum(torch.abs(x),dim=(-1,-2),keepdim=True)+eps)
+        x = x*a
         x = self.Product00(x,x)
-        #print(torch.sum(torch.abs(x),dim =(-1,-2))[0,0:2])
-        a = 1/(torch.sum(torch.abs(x),dim =(-1,-2))+eps)
-        x = torch.einsum('ijkl,ij->ijkl', x,a)
+        a = 1/(torch.sum(torch.abs(x),dim=(-1,-2),keepdim=True)+eps)
+        x = x*a
+        # a = (torch.sum(torch.sqrt(torch.sum(torch.square(x),dim =(-1),keepdim=False)),dim=-1)+eps)
+        # print(a)
+        # #a = torch.where(a>1,a,1)
+        # al = 1/a
+        # x = torch.einsum('ijkl,ij->ijkl', x,al)
 
         x = self.Product0(x,x)
-        #print(torch.sum(torch.abs(x),dim =(-1,-2))[0,0:2])
-        a = 1/(torch.sum(torch.abs(x),dim =(-1,-2))+eps)
-        x = torch.einsum('ijkl,ij->ijkl', x,a)
+        a = 1/(torch.sum(torch.abs(x),dim=(-1,-2),keepdim=True)+eps)
+        x = x*a
+        # a = (torch.sum(torch.sqrt(torch.sum(torch.square(x),dim =(-1),keepdim=False)),dim=-1)+eps)
+        # print(a)
+        # #a = torch.where(a>1,a,1)
+        # al = 1/a
+        # x = torch.einsum('ijkl,ij->ijkl', x,al)
 
         x = self.Product1(x,x)
-        #print(torch.sum(torch.abs(x),dim =(-1,-2))[0,0:2])
-        a = 1/(torch.sum(torch.abs(x),dim =(-1,-2))+eps)
-        x = torch.einsum('ijkl,ij->ijkl', x,a)
+        a = 1/(torch.sum(torch.abs(x),dim=(-1,-2),keepdim=True)+eps)
+        x = x*a
+        # a = (torch.sum(torch.sqrt(torch.sum(torch.square(x),dim =(-1),keepdim=False)),dim=-1)+eps)
+        # print(a)
+        # print(torch.isnan(x).any())
+        # print(torch.min(x))
+        # print(torch.max(x))
+        # #a = torch.where(a>1,a,1)
+        # al = 1/a
+        #x = torch.einsum('ijkl,ij->ijkl', x,al)
 
         x = self.Product2(x,x)
-        #print(torch.sum(torch.abs(x),dim =(-1,-2))[0,0:2])
-        a = 1/(torch.sum(torch.abs(x),dim =(-1,-2))+eps)
-        x = torch.einsum('ijkl,ij->ijkl', x,a)
+        a = 1/(torch.sum(torch.abs(x),dim=(-1,-2),keepdim=True)+eps)
+        x = x*a
+        # a1 = torch.square(x)
+        # a2 = torch.sum(a1,dim =(-1),keepdim=False)
+        # a3 = torch.sqrt(a2)
+        # a4 = torch.sum(a3,dim =(-1),keepdim=False)+eps
+        # #a = (torch.sum(torch.sqrt(torch.sum(torch.square(x),dim =(-1),keepdim=False)),dim=-1)+eps)
+        # print(a)
+        # #a = torch.where(a>1,a,1)
+        # al = 1/a4
+        # x = torch.einsum('ijkl,ij->ijkl', x,al)
         x = self.Product3(x,x)
-        #print(torch.sum(torch.abs(x),dim =(-1,-2))[0,0:2])
-        a = 1/(torch.sum(torch.abs(x),dim =(-1,-2))+eps)
-        x = torch.einsum('ijkl,ij->ijkl', x,a)
+        a = 1/(torch.sum(torch.abs(x),dim=(-1,-2),keepdim=True)+eps)
+        x = x*a
+        # a = (torch.sum(torch.sqrt(torch.sum(torch.square(x),dim =(-1),keepdim=False)),dim=-1)+eps)
+        # print(a)
+        # #a = torch.where(a>1,a,1)
+        # al = 1/a
+        # x = torch.einsum('ijkl,ij->ijkl', x,al)
         x = self.Product4(x,x)
+        a = 1/(torch.sum(torch.abs(x),dim=(-1,-2),keepdim=True)+eps)
+        x = x*a
 
-        #print(torch.sum(torch.abs(x),dim =(-1,-2))[0,0:2])
-        a = 1/(torch.sum(torch.abs(x),dim =(-1,-2))+eps)
-        x = torch.einsum('ijkl,ij->ijkl', x,a)
+        # a = (torch.sum(torch.sqrt(torch.sum(torch.square(x),dim =(-1),keepdim=False)),dim=-1)+eps)
+        # print(a)
+        # #a = torch.where(a>1,a,1)
+        # al = 1/a
+        # x = torch.einsum('ijkl,ij->ijkl', x,al)
         x = self.Product5(x,x)
+        # print(torch.isnan(x).any())
+        # print(torch.min(x))
+        # print(torch.max(x))
         #x = self.output_Lin_2(self.output_Lin_1(x))
         '''
 
-        a = 1/(torch.sum(torch.abs(x),dim =(-1,-2))+eps)
+        a = 1/(torch.sqrt(torch.sum(torch.square(x),dim =(-1,-2))+eps)
         x = torch.einsum('ijkl,ij->ijkl', x,a)
         x = self.Product6(x,x)
 
 
-        a = 1/(torch.sum(torch.abs(x),dim =(-1,-2))+eps)
+        a = 1/(torch.sqrt(torch.sum(torch.square(x),dim =(-1,-2))+eps)
         x = torch.einsum('ijkl,ij->ijkl', x,a)
         x = self.Product7(x,x)
         '''
-        #print(torch.sum(torch.abs(x),dim =(-1,-2))[0,0:2])
+        #print(torch.sqrt(torch.sum(torch.square(x),dim =(-1,-2))[0,0:2])
         #print('decode_done')
-        #x = x/torch.sum(torch.abs(x),dim =(-1,-2))
+        #x = x/torch.sqrt(torch.sum(torch.square(x),dim =(-1,-2))
         #print('done')
         return x
 

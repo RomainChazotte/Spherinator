@@ -13,6 +13,8 @@ wandb/
 experiments/Zernike_norms*
 experiments/Zernike_layer_matrix*
 Zernike_decode_encode*
+Zernike_norms*
+Zernike_layer_matrix*
 *.png
 t10k-*
 train-images*
