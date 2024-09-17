@@ -188,6 +188,7 @@ class Zernike_layer(nn.Module):
             # Possibly make this independant for each m,n. This would lead to a more pronounced role of multiple channels, yet drastically increase complexitly.
             self.In_Lin1 = Multilin(in_channels,intermediate_channels,size,Non_lin=True,normalize=False)
             self.In_Lin2 = Multilin(in_channels,intermediate_channels,size,Non_lin=True,normalize=False)
+            size = self.calc_size(n_out)
             self.Out_Lin  = Multilin(intermediate_channels,out_channels,size)
 
             # self.deep_In_Lin1 = Multilin(in_channels,in_channels,size,Non_lin=True)
@@ -201,9 +202,20 @@ class Zernike_layer(nn.Module):
             # self.deep_In_Lin2 = Lintrans3(in_channels,in_channels,Non_lin=True)
             # self.deep_Out_Lin  = Lintrans3(intermediate_channels,intermediate_channels,Non_lin=True)
         #self.Zernike_matrix = self.Zernike_matrix  / (16)
+        #eps = np.finfo(float).eps
+        #self.Zernike_matrix = self.Zernike_matrix/(torch.abs(torch.sum(self.Zernike_matrix,dim=(-1,-2),keepdim=True))+eps)
+        #self.Zernike_matrix = torch.where(self.Zernike_matrix<0.00001, 0, self.Zernike_matrix)
+        if n_max_2 is not None:
+            n_maximal = max(n_max,n_max_2)
+        else:
+            n_maximal = n_max
         eps = np.finfo(float).eps
         self.Zernike_matrix = self.Zernike_matrix/(torch.abs(torch.sum(self.Zernike_matrix,dim=(-1,-2),keepdim=True))+eps)
-        self.Zernike_matrix = torch.where(self.Zernike_matrix<0.00001, 0, self.Zernike_matrix)
+        self.Zernike_matrix = torch.where(torch.abs(self.Zernike_matrix)<0.00001, 0, self.Zernike_matrix)
+        if n_out < n_maximal:
+            mask = self.create_mask_decrease(n_maximal,n_out)
+            self.Zernike_matrix = self.Zernike_matrix[:,:,mask,:]
+
 
     def calc_size(self,n_max):
         '''
@@ -356,6 +368,14 @@ class Zernike_layer(nn.Module):
         out2 = np.einsum('ij,j->i',Mat2,Mult)[m_out2:]
         out1 = out1[::2]
         out2 = out2[::2]
+        # eps = np.finfo(float).eps
+        # norm1 = np.abs(np.sum(out1,keepdims=True))+eps
+        # out1 = out1/norm1
+        # norm2 = np.abs(np.sum(out2,keepdims=True))+eps
+        # out2 = out2/norm2
+        # out1 = np.where(np.abs(out1)<0.0000001, 0, out1)
+        # out2 = np.where(np.abs(out2)<0.0000001, 0, out2)
+
         out_dim_0 = np.zeros(lower,dtype=float)
 
         if not m_out1 == m_out2:
@@ -482,11 +502,11 @@ class Zernike_layer(nn.Module):
         #print(a)
         ##print(torch.cuda.mem_get_info())
         #print('zern_matrix')
-        #a =torch.sum(torch.abs(self.Zernike_matrix))
-        #b = torch.gt(self.Zernike_matrix, 10000000)
-        #print(a)
-        #print(torch.max(self.Zernike_matrix))
-        #print(torch.min(self.Zernike_matrix))
+        # a =torch.sum(torch.abs(self.Zernike_matrix))
+        # #b = torch.gt(self.Zernike_matrix, 10000000)
+        # print(a)
+        # print(torch.max(self.Zernike_matrix))
+        # print(torch.min(self.Zernike_matrix))
         # #print('hello')
         # for i in range(289):
         #     for j in range(289):
@@ -561,11 +581,11 @@ class Zernike_layer(nn.Module):
             '''
             #out = self.deep_Out_Lin(out)
             out = self.Out_Lin(out)
-        if self.reduce:
-            '''
-            If the output size is smaller then one of the input sizes, we need to consider only the output terms of interest
-            '''
-            out = out[:,:,self.out_mask,:]
+        # if self.reduce:
+        #     '''
+        #     If the output size is smaller then one of the input sizes, we need to consider only the output terms of interest
+        #     '''
+        #     out = out[:,:,self.out_mask,:]
         #a = torch.sum(torch.sqrt(torch.sum(torch.square(out),dim =(-1),keepdim=False)),dim=-1)
         #print(a)
         #print('layerdone')
@@ -662,7 +682,7 @@ class Zernike_Norms(nn.Module):
 
         grid_extend = 1
         #grid_resolution = 680
-        z = x = np.linspace(-grid_extend, grid_extend, 128)
+        z = x = np.linspace(-grid_extend, grid_extend, int(128*self.num))
         z, x = np.meshgrid(z, x)
 
         #print(Zernike_functions)
@@ -687,7 +707,7 @@ class Zernike_Norms(nn.Module):
 
 
         out = np.array(out)
-        #out =torch.tensor( block_reduce(out,(1,1, self.num, self.num),func=np.sum),dtype=torch.float)
+        out =torch.tensor( block_reduce(out,(1,1, self.num, self.num),func=np.sum),dtype=torch.float)
 
 
         out = torch.tensor(out)

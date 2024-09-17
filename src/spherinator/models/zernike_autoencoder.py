@@ -28,8 +28,8 @@ from .zernike_encoder import ZernikeEncoder
 class ZernikeAutoencoder(SpherinatorModule):
     def __init__(
         self,
-        encoder: nn.Module = ZernikeEncoder(32,1,10,device = 'cuda:2'),
-        decoder: nn.Module = ZernikeDecoder(32,1,10,device = 'cuda:2'),
+        encoder: nn.Module = ZernikeEncoder(32,1,10,device = 'cuda:1'),
+        decoder: nn.Module = ZernikeDecoder(32,1,10,device = 'cuda:1'),
         image_size: int = 91,
         input_size: int = 128,
         rotations: int = 36,
@@ -50,7 +50,7 @@ class ZernikeAutoencoder(SpherinatorModule):
 
 
         #print(self.device)
-        device = 'cuda:2'
+        device = 'cuda:1'
         self.Embedding_Function = Zernike_embedding(32, device, numerical_expand = 16)
         #decoder = ZernikeDecoder(32,1,10,device = 'cpu')
         #encoder =  ZernikeEncoder(32,1,10,device = 'cpu')
@@ -123,7 +123,7 @@ class ZernikeAutoencoder(SpherinatorModule):
 
 
     def training_step(self, batch, batch_idx):
-        #torch.autograd.set_detect_anomaly(True)
+        torch.autograd.set_detect_anomaly(True)
 
         with torch.no_grad():
             crop = functional.center_crop(batch, [self.crop_size, self.crop_size])
@@ -157,6 +157,7 @@ class ZernikeAutoencoder(SpherinatorModule):
         with torch.no_grad():
             #print(torch.sum(torch.abs(x)), torch.sum(torch.abs(out)))
             out_pic = self.Embedding_Function.decode(out)
+            #input_picture= self.Embedding_Function.decode(x)
             #rec_pic = self.Embedding_Function.decode(x)
             #print(torch.sum(torch.abs(picture)), torch.sum(torch.abs(out_pic)), torch.sum(torch.abs(rec_pic)))
 
@@ -173,8 +174,9 @@ class ZernikeAutoencoder(SpherinatorModule):
         #     loss = self.criterion2(input_picture,out_pic)
 
         #out_pic = self.Embedding_Function.decode(out)
-        #loss = self.criterion(out_pic, picture)*1000
-        loss = self.criterion(x, out)*1000
+        #out_pic = self.Embedding_Function.decode(out)
+        #loss = self.criterion2(out_pic, input_picture)*1000
+        loss = self.criterion2(x, out)*1000
 
         #loss = torch.mean(torch.square(out_pic-input_picture),dim=(-1,-2,-3))
         #loss = torch.mean(loss)
@@ -225,7 +227,7 @@ class Zernike_embedding(nn.Module):
 
 
         #self.Zernike_matrix = self.create_filter(n_max)
-        self.Zernike_matrix = self.Zernike_matrix.to(device)*16
+        self.Zernike_matrix = self.Zernike_matrix.to(device)#*16
         #self.norm_matrix = np.array(self.norm_matrix)
         #self.Zernike_matrix= torch.nn.parameter.Parameter(self.Zernike_matrix,requires_grad=False)
         #self.device = 'cuda:2'

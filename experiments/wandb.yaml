@@ -8,7 +8,10 @@ trainer:
       tags:
         - Zernike model
         - latent_dim = 2
-        - L1 loss
+        - Zernike L1
         - embedding no_grad
         - fixed norm
         - normalized inputs
+        - Old Zernike norm
+        - MSE loss
+        - double_batch

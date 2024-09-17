@@ -13,20 +13,22 @@ class ZernikeEncoderClassify(pl.LightningModule):
         super().__init__()
         test_dimens = False
 
-        #self.Product0 = Zernike_layer( n_max = 32, n_out=32,multichanneled = 'independant',in_channels = 3 ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
 
-        #self.Product01 = Zernike_layer( n_max = 32, n_out=32,multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
+        self.norm = torch.nn.LayerNorm(10)
+        self.Product0 = Zernike_layer( n_max = 32, n_out=32,multichanneled = 'independant',in_channels = 3 ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
 
-        #self.Product02 = Zernike_layer( n_max = 32, n_out=32,multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
+        self.Product01 = Zernike_layer( n_max = 32, n_out=32,multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
 
-        #self.Product1 = Zernike_layer( n_max = 32, n_out=32,multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
+        self.Product02 = Zernike_layer( n_max = 32, n_out=32,multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
+
+        self.Product1 = Zernike_layer( n_max = 32, n_out=32,multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
         #self.Input1 =  torch.nn.parameter.Parameter(Init_zero(3,n_in))
 
-        #self.Product2 = Zernike_layer( n_max = 32, n_out=16,multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)
+        self.Product2 = Zernike_layer( n_max = 32, n_out=16,multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)
         #self.Input2 =  torch.nn.parameter.Parameter(Init_zero(num_channels,n_in))
 
 
-        self.Product3 = Zernike_layer( n_max = 8, n_out=8, multichanneled = 'independant',in_channels = 3 ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)
+        self.Product3 = Zernike_layer( n_max = 16, n_out=8, multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)
         #self.Input3 =  torch.nn.parameter.Parameter(Init_zero(num_channels,n_in))
         self.Product4 = Zernike_layer( n_max = 8, n_out=4, multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)
 
@@ -45,60 +47,74 @@ class ZernikeEncoderClassify(pl.LightningModule):
         #size = self.Product2.calc_size(n_output)
     def forward(self, x) -> torch.tensor:
         eps = 0.0000000000000000000001
-        #x = self.Product0(x,x)
-        #print('encode')
-        #print(torch.sum(torch.abs(x),dim =(-1,-2))[0,0:2])
+
+        x = self.Product0(x,x)
+        ##print('encode')
+        ##print(torch.sum(torch.abs(x),dim =(-1,-2))[0,0:2])
         #a = 1/(torch.sum(torch.abs(x),dim =(-1,-2))+eps)
         #x = torch.einsum('ijkl,ij->ijkl', x,a)
-        '''
+
+        a = 1/(torch.sum(torch.abs(x),dim=(-1,-2,-3),keepdim=True)+eps)
+        #print(a[0])
+        x = x*a
         x = self.Product01(x,x)
-        a = 1/(torch.sum(torch.abs(x),dim =(-1,-2))+eps)
-        x = torch.einsum('ijkl,ij->ijkl', x,a)
-
+        a = 1/(torch.sum(torch.abs(x),dim=(-1,-2,-3),keepdim=True)+eps)
+        #print(a[0])
+        x = x*a
         x = self.Product02(x,x)
-        a = 1/(torch.sum(torch.abs(x),dim =(-1,-2))+eps)
-        x = torch.einsum('ijkl,ij->ijkl', x,a)
-
+        a = 1/(torch.sum(torch.abs(x),dim=(-1,-2,-3),keepdim=True)+eps)
+        #print(a[0])
+        x = x*a
         x = self.Product1(x,x)
-        #print(torch.sum(torch.abs(x),dim =(-1,-2))[0,0:2])
-        a = 1/(torch.sum(torch.abs(x),dim =(-1,-2))+eps)
-        x = torch.einsum('ijkl,ij->ijkl', x,a)
+        a = 1/(torch.sum(torch.abs(x),dim=(-1,-2,-3),keepdim=True)+eps)
+        #print(a[0])
+        x = x*a
 
         x = self.Product2(x,x)
-        #print(torch.sum(torch.abs(x),dim =(-1,-2))[0,0:2])
-        a = 1/(torch.sum(torch.abs(x),dim =(-1,-2))+eps)
-        x = torch.einsum('ijkl,ij->ijkl', x,a)
-        '''
+        a = 1/(torch.sum(torch.abs(x),dim=(-1,-2,-3),keepdim=True)+eps)
+        #print(a[0])
+        x = x*a
+
         x = self.Product3(x,x)
-        #print(torch.sum(torch.abs(x),dim =(-1,-2))[0,0:2])
-        a = 1/(torch.sum(torch.abs(x),dim =(-1,-2))+eps)
-        x = torch.einsum('ijkl,ij->ijkl', x,a)
+        a = 1/(torch.sum(torch.abs(x),dim=(-1,-2,-3),keepdim=True)+eps)
+        #print(a[0])
+        x = x*a
 
         x = self.Product4(x,x)
-        #print(torch.sum(torch.abs(x),dim =(-1,-2))[0,0:2])
-        a = 1/(torch.sum(torch.abs(x),dim =(-1,-2))+eps)
-        x = torch.einsum('ijkl,ij->ijkl', x,a)
+        a = 1/(torch.sum(torch.abs(x),dim=(-1,-2,-3),keepdim=True)+eps)
+        #print(a[0])
+        x = x*a
 
 
         x = self.Product5(x,x)
-        #print(torch.sum(torch.abs(x),dim =(-1,-2))[0,0:2])
-        a = 1/(torch.sum(torch.abs(x),dim =(-1,-2))+eps)
-        x = torch.einsum('ijkl,ij->ijkl', x,a)
+        a = 1/(torch.sum(torch.abs(x),dim=(-1,-2,-3),keepdim=True)+eps)
+        #print(a[0])
+        x = x*a
 
 
         x = self.Product50(x,x)
-        #print(torch.sum(torch.abs(x),dim =(-1,-2))[0,0:2])
-        a = 1/(torch.sum(torch.abs(x),dim =(-1,-2))+eps)
-        x = torch.einsum('ijkl,ij->ijkl', x,a)
+        a = 1/(torch.sum(torch.abs(x),dim=(-1,-2,-3),keepdim=True)+eps)
+        #print(a[0])
+        x = x*a
 
-        #print('encode_done')
+        ##print('encode_done')
 
         #x = self.Lin_2(self.Lin_1(x))
 
 
 
         x = self.Product_classifier(x,x)
+        a = 1/(torch.sum(torch.abs(x),dim=(-1,-2,-3),keepdim=True)+eps)
+        #print(a[0])
+        x = x*a
         x = self.Lin_2_classifier(self.Lin_1(x))
+        a = 1/(torch.sum(torch.abs(x),dim=(-1,-2,-3),keepdim=True)+eps)
+        x = x*a
+        #print(a[0])
+        #print(x[0])
+        x = x[:,:,0,0]
+        #x = self.norm(x)
+        #print(x[0])
         return x
 
 

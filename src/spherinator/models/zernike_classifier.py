@@ -1,14 +1,10 @@
 import argparse
 import math
+import os.path
 import random
 
 import numpy
 import numpy as np
-import os.path
-from skimage.measure import block_reduce
-from sympy import ord0
-
-
 #import scipy
 #import scipy.special as sp
 #import seaborn as sns
@@ -19,6 +15,8 @@ import torch.nn.functional as F
 import torchvision.transforms.v2.functional as functional
 from numpy import convolve
 from power_spherical import HypersphericalUniform, PowerSpherical
+from skimage.measure import block_reduce
+from sympy import ord0
 #from scipy.constants import physical_constants
 from torch.optim import Adam
 
@@ -32,7 +30,7 @@ from .zernike_encoder_classify import ZernikeEncoderClassify
 class ZernikeClassifier(SpherinatorModule):
     def __init__(
         self,
-        encoder: nn.Module = ZernikeEncoderClassify(8,0,10,device = 'cpu'),
+        #encoder: nn.Module = ZernikeEncoderClassify(8,0,10,device = 'cuda:2'),
         image_size: int = 91,
         input_size: int = 29,
         rotations: int = 36,
@@ -53,7 +51,7 @@ class ZernikeClassifier(SpherinatorModule):
 
 
         #print(self.device)
-        device = 'cpu'
+        #device = 'cuda:2'
         self.input_mask= self.mask().to(device)
         self.encoder = encoder
         self.image_size = image_size
@@ -67,7 +65,7 @@ class ZernikeClassifier(SpherinatorModule):
         self.example_input_array = torch.randn(2, 3, self.input_size, self.input_size)
 
         self.criterion = nn.L1Loss()
-        self.Embedding_Function = Zernike_embedding(8, device)
+        self.Embedding_Function = Zernike_embedding(32, device)
         print(self.Embedding_Function.Zernike_matrix.size())
         out = self.Embedding_Function.Zernike_matrix.to('cpu')
         out = np.array(out[:,:,6:119,6:119])
@@ -96,7 +94,7 @@ class ZernikeClassifier(SpherinatorModule):
         #print(norm)
         #z = z/norm
         #print(z)
-        z = F.softmax(z,dim=1)
+        #z = F.softmax(z,dim=1)
         #norm = torch.sum(torch.abs(z),dim=1,keepdim=True)+eps
         #z = z/norm
         #z = F.log_softmax(z, dim=1)
@@ -107,11 +105,12 @@ class ZernikeClassifier(SpherinatorModule):
 
         #sum_in = torch.sum(torch.abs(picture),dim=(-1,-2,-3))
         #picture = picture/sum_in
-        x = batch[0]
-        y = batch[1]
-        #compare = torch.ones_like(y,dtype=torch.float)
-        y = F.one_hot(y).to(torch.float)
-        picture = torch.einsum('...ij,ij->...ij',x,self.input_mask)
+        with torch.no_grad():
+            x = batch[0]
+            y = batch[1]
+            #compare = torch.ones_like(y,dtype=torch.float)
+            y = F.one_hot(y).to(torch.float)
+            picture = torch.einsum('...ij,ij->...ij',x,self.input_mask)
         #print( torch.sum(torch.abs(picture),dim=(-1,-2),keepdim=True)[0])
         #picture = picture/norm
         out = self.forward(picture)
@@ -132,15 +131,15 @@ class ZernikeClassifier(SpherinatorModule):
         #out = out/norm
         #loss = self.criterion(out,picture)
         #print(y.size(),out[:,:,0,0].squeeze().size())
-        loss = self.criterion( out[:,:,0,0],y)+ (0.31*(torch.abs(torch.sum(out[:,:,0,0],dim=1)-1))).mean()
+        loss = self.criterion( out,y)+ (0.31*(torch.abs(torch.sum(out,dim=1)-1))).mean()
         #loss = F.nll_loss(out[:,:,0,0].squeeze(),y)
-        if loss <0.15 and self.optimizers().param_groups[0]["lr"] > 0.001:
-            self.optimizers().param_groups[0]["lr"] = 0.001
+        # if loss <0.15 and self.optimizers().param_groups[0]["lr"] > 0.001:
+        #     self.optimizers().param_groups[0]["lr"] = 0.001
 
         #print(y[0])
         #print(out[0,:,0,0])
         self.log("train_loss", loss, prog_bar=True)
-        self.log("prediction_error", torch.abs((y-out[:,:,0,0])[y==1]).mean(), prog_bar=True)
+        self.log("prediction_error", torch.abs((y-out)[y==1]).mean(), prog_bar=True)
         #self.log("image_loss", self.criterion(out_pic, picture), prog_bar=True)
         self.log("learning_rate", self.optimizers().param_groups[0]["lr"])
         return loss
@@ -174,12 +173,12 @@ class ZernikeClassifier(SpherinatorModule):
         #out = out/norm
         #loss = self.criterion(out,picture)
         #print(y.size(),out[:,:,0,0].squeeze().size())
-        loss = self.criterion( out[:,:,0,0],y)+ (0.31*(torch.abs(torch.sum(out[:,:,0,0],dim=1)-1))).mean()
+        loss = self.criterion( out,y)+ (0.31*(torch.abs(torch.sum(out,dim=1)-1))).mean()
         #loss = F.nll_loss(out[:,:,0,0].squeeze(),y)
         #print(y[0])
         #print(out[0,:,0,0])
         self.log("validation_loss", loss, prog_bar=True)
-        self.log("validation_error",torch.abs((y-out[:,:,0,0])[y==1]).mean(), prog_bar=True)
+        self.log("validation_error",torch.abs((y-out)[y==1]).mean(), prog_bar=True)
         #self.log("image_loss", self.criterion(out_pic, picture), prog_bar=True)
         self.log("learning_rate", self.optimizers().param_groups[0]["lr"])
         return loss
@@ -220,8 +219,7 @@ class Zernike_embedding(nn.Module):
         if os.path.isfile('Zernike_decode_encode{}'.format(n_max)):
             self.Zernike_matrix = torch.load('Zernike_decode_encode{}'.format(n_max))
         else:
-            self.Zernike_matrix = self.create_filter(n_max)
-            torch.save(self.Zernike_matrix,'Zernike_decode_encode{}'.format(n_max))
+            print('please preprocess matrix')
         #size = self.calc_size(n_max)
 
         #self.Zernike_matrix = self.create_filter(n_max)
@@ -335,8 +333,7 @@ class Zernike_embedding(nn.Module):
         #print(input.size())
         out = torch.einsum('ijkl,...kl->...ij',self.Zernike_matrix,input)
         #print(out.size())
-        return out*100
-
+        return out
 
 
 
@@ -347,8 +344,7 @@ class Zernike_decode(nn.Module):
         if os.path.isfile('Zernike_decode_encode{}'.format(n_max)):
             self.Zernike_matrix = torch.load('Zernike_decode_encode{}'.format(n_max))
         else:
-            self.Zernike_matrix = self.create_filter(n_max)
-            torch.save(self.Zernike_matrix,'Zernike_decode_encode{}'.format(n_max))
+            print('please preprocess matrix')
         #size = self.calc_size(n_max)
 
         #self.Zernike_matrix = self.create_filter(n_max)
@@ -471,4 +467,4 @@ class Zernike_decode(nn.Module):
         #self.Zernike_matrix = self.Zernike_matrix/(norm+eps)
         #This should be implemented in init, do this later
         out = torch.einsum('ijkl,...ij->...kl',self.Zernike_matrix,input)
-        return out*100
+        return out
