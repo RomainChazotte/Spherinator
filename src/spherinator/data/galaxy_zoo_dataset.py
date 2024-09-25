@@ -7,6 +7,9 @@ import numpy
 import skimage.io as io
 import torch
 
+from spherinator.models import zernike_classifier
+
+from ..models.zernike_classifier import Zernike_embedding
 from .spherinator_dataset import SpherinatorDataset
 
 
@@ -15,9 +18,9 @@ class GalaxyZooDataset(SpherinatorDataset):
 
     def __init__(
         self,
-        data_directory: str,
-        extension: str = "jpeg",
-        label_file: str = str(),
+        data_directory: str= '/local_data/AIN/chazotrn/Morphology_GalaxyZoo/Zernike_images',
+        extension: str = "pt",
+        label_file: str = '/hits/fast/ain/Data/Morphology_GalaxyZoo/training_solutions_rev1.csv',
         transform=None,
     ):
         """Initializes an galaxy zoo data set.
@@ -38,13 +41,17 @@ class GalaxyZooDataset(SpherinatorDataset):
         for file in os.listdir(data_directory):
             if file.endswith(extension):
                 self.files.append(os.path.join(data_directory, file))
-        if label_file is str():
-            self.labels = torch.Tensor(numpy.zeros(self.len))
-        else:
-            self.labels = torch.Tensor(
-                numpy.loadtxt(label_file, delimiter=",", skiprows=1)[:, 1:]
-            )
+        #print(len(self.files))
+        # if label_file is str():
+        #     self.labels = torch.Tensor(numpy.zeros(self.len))
+        # else:
+        self.labels = torch.Tensor(
+            numpy.loadtxt(label_file, delimiter=",", skiprows=1)[:, 1:]
+        )
+        #print(self.labels.size())
         self.current_index = []
+        self.embed = Zernike_embedding(32,device='cpu')
+
 
     def __len__(self):
         """Return the number of items in the dataset."""
@@ -60,15 +67,19 @@ class GalaxyZooDataset(SpherinatorDataset):
             data: Data of the item/items with the given indices.
         """
         self.current_index = index
-        data = io.imread(self.files[index])
-        data = torch.Tensor(data)
+        data = torch.load(self.files[index],weights_only =True)
+        #data = torch.Tensor(data)
         # Swap axis 0 and 2 to bring the color channel to the front
-        data = torch.swapaxes(data, 0, 2)
+        #data = torch.swapaxes(data, 0, 2)
         # Normalize the RGB values to values between 0 and 1
-        data /= 255.0
-        if self.transform:
-            data = self.transform(data)
-        return data
+        #data /= 255.0
+        #data = self.embed.embed(data)
+        #torch.save(data,' /hits/fast/ain/romain/Data/Morphology_GalaxyZoo/Zernike_images/{}.pt'.format(index))
+        # if self.transform:
+        #     data = self.transform(data)
+
+
+        return [data,self.labels[index]]
 
     def get_metadata(self, index: int):
         """Retrieves the metadata of the item/items with the given indices from the dataset.

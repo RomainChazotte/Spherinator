@@ -6,9 +6,7 @@ trainer:
       log_model: True
       entity: ain-space
       tags:
-        - Zernike model
-        - latent_dim = 2
-        - L1 loss
-        - embedding no_grad
-        - fixed norm
-        - normalized inputs
+        - Zernike mnist
+        - MSE loss
+        - rot and flip
+        - 2.5 k params

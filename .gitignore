@@ -19,3 +19,9 @@ Zernike_layer_matrix*
 t10k-*
 train-images*
 train-labels*
+data/cifar*
+*.npz
+*.amat
+*.zip
+*.txt
+test.py

@@ -1,329 +1,336 @@
-/home/chazotrn/development/Spherinator/src/spherinator/models/Zernike_layer.py:608: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
-  self.norm_output = torch.load('../Zernike_norms{}'.format(n_max))
-/home/chazotrn/development/Spherinator/src/spherinator/models/Zernike_layer.py:152: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
-  self.Zernike_matrix = torch.load('../Zernike_layer_matrix{}'.format(n_max))
-/home/chazotrn/development/Spherinator/src/spherinator/models/Zernike_layer.py:158: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
-  self.Zernike_matrix = torch.tensor(self.Zernike_matrix).to(self.device)
-/home/chazotrn/development/Spherinator/src/spherinator/models/Zernike_layer.py:108: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
-  self.Zernike_matrix = torch.load('../Zernike_layer_matrix{}'.format(n_out))
-/home/chazotrn/development/Spherinator/src/spherinator/models/Zernike_layer.py:114: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
-  self.Zernike_matrix = torch.tensor(self.Zernike_matrix).to(self.device)
-Seed set to 42
-/home/chazotrn/.cache/pypoetry/virtualenvs/spherinator--ducJsVz-py3.10/lib/python3.10/site-packages/jsonargparse/_typehints.py:1457: JsonargparseWarning: 
-    Unable to serialize instance ZernikeEncoder(   (Product0): Zernike_layer(     (Nonlin): Non_linearity(
-    (lin): Linear(in_features=1, out_features=1, bias=True)     )     (In_Lin1): Multilin(       (Non_lin):
-    Non_linearity(         (lin): Linear(in_features=1, out_features=1, bias=True)       )     )     (In_Lin2):
-    Multilin(       (Non_lin): Non_linearity(         (lin): Linear(in_features=1, out_features=1, bias=True)
-    )     )     (Out_Lin): Multilin()   )   (Product1): Zernike_layer(     (Nonlin): Non_linearity(       (lin):
-    Linear(in_features=1, out_features=1, bias=True)     )     (In_Lin1): Multilin(       (Non_lin):
-    Non_linearity(         (lin): Linear(in_features=1, out_features=1, bias=True)       )     )     (In_Lin2):
-    Multilin(       (Non_lin): Non_linearity(         (lin): Linear(in_features=1, out_features=1, bias=True)
-    )     )     (Out_Lin): Multilin()   )   (Product2): Zernike_layer(     (Nonlin): Non_linearity(       (lin):
-    Linear(in_features=1, out_features=1, bias=True)     )     (In_Lin1): Multilin(       (Non_lin):
-    Non_linearity(         (lin): Linear(in_features=1, out_features=1, bias=True)       )     )     (In_Lin2):
-    Multilin(       (Non_lin): Non_linearity(         (lin): Linear(in_features=1, out_features=1, bias=True)
-    )     )     (Out_Lin): Multilin()   )   (Lin_1): Multilin(     (Non_lin): Non_linearity(       (lin):
-    Linear(in_features=1, out_features=1, bias=True)     )   )   (Lin_2): Multilin(     (Non_lin): Non_linearity(
-    (lin): Linear(in_features=1, out_features=1, bias=True)     )   )   (Product3): Zernike_layer(     (Nonlin):
-    Non_linearity(       (lin): Linear(in_features=1, out_features=1, bias=True)     )     (In_Lin1): Multilin(
-    (Non_lin): Non_linearity(         (lin): Linear(in_features=1, out_features=1, bias=True)       )     )
-    (In_Lin2): Multilin(       (Non_lin): Non_linearity(         (lin): Linear(in_features=1, out_features=1,
-    bias=True)       )     )     (Out_Lin): Multilin()   )   (Product4): Zernike_layer(     (Nonlin):
-    Non_linearity(       (lin): Linear(in_features=1, out_features=1, bias=True)     )     (In_Lin1): Multilin(
-    (Non_lin): Non_linearity(         (lin): Linear(in_features=1, out_features=1, bias=True)       )     )
-    (In_Lin2): Multilin(       (Non_lin): Non_linearity(         (lin): Linear(in_features=1, out_features=1,
-    bias=True)       )     )     (Out_Lin): Multilin()   )   (Product5): Zernike_layer(     (Nonlin):
-    Non_linearity(       (lin): Linear(in_features=1, out_features=1, bias=True)     )     (In_Lin1): Multilin(
-    (Non_lin): Non_linearity(         (lin): Linear(in_features=1, out_features=1, bias=True)       )     )
-    (In_Lin2): Multilin(       (Non_lin): Non_linearity(         (lin): Linear(in_features=1, out_features=1,
-    bias=True)       )     )     (Out_Lin): Multilin()   )   (Product50): Zernike_layer(     (Nonlin):
-    Non_linearity(       (lin): Linear(in_features=1, out_features=1, bias=True)     )     (In_Lin1): Multilin(
-    (Non_lin): Non_linearity(         (lin): Linear(in_features=1, out_features=1, bias=True)       )     )
-    (In_Lin2): Multilin(       (Non_lin): Non_linearity(         (lin): Linear(in_features=1, out_features=1,
-    bias=True)       )     )     (Out_Lin): Multilin()   ) )
+rot
+pre
+tensor([[[[-2.1205e-01,  0.0000e+00],
+          [-2.6298e-01,  0.0000e+00],
+          [-3.8048e+00,  0.0000e+00],
+          [ 2.6723e-05, -3.8233e-05],
+          [-1.0896e-02,  2.2117e-01],
+          [-1.4970e-02, -2.7448e-02],
+          [ 1.3683e+00, -1.2193e+00],
+          [-1.0092e-02,  5.1433e-03],
+          [ 9.4225e-06,  1.8977e-05]],
 
-  warning(val)
-/home/chazotrn/.cache/pypoetry/virtualenvs/spherinator--ducJsVz-py3.10/lib/python3.10/site-packages/jsonargparse/_typehints.py:1457: JsonargparseWarning: 
-    Unable to serialize instance ZernikeDecoder(   (Product00): Zernike_layer(     (Nonlin): Non_linearity(
-    (lin): Linear(in_features=1, out_features=1, bias=True)     )     (In_Lin1): Multilin(       (Non_lin):
-    Non_linearity(         (lin): Linear(in_features=1, out_features=1, bias=True)       )     )     (In_Lin2):
-    Multilin(       (Non_lin): Non_linearity(         (lin): Linear(in_features=1, out_features=1, bias=True)
-    )     )     (Out_Lin): Multilin()   )   (Product0): Zernike_layer(     (Nonlin): Non_linearity(       (lin):
-    Linear(in_features=1, out_features=1, bias=True)     )     (In_Lin1): Multilin(       (Non_lin):
-    Non_linearity(         (lin): Linear(in_features=1, out_features=1, bias=True)       )     )     (In_Lin2):
-    Multilin(       (Non_lin): Non_linearity(         (lin): Linear(in_features=1, out_features=1, bias=True)
-    )     )     (Out_Lin): Multilin()   )   (Product1): Zernike_layer(     (Nonlin): Non_linearity(       (lin):
-    Linear(in_features=1, out_features=1, bias=True)     )     (In_Lin1): Multilin(       (Non_lin):
-    Non_linearity(         (lin): Linear(in_features=1, out_features=1, bias=True)       )     )     (In_Lin2):
-    Multilin(       (Non_lin): Non_linearity(         (lin): Linear(in_features=1, out_features=1, bias=True)
-    )     )     (Out_Lin): Multilin()   )   (Product2): Zernike_layer(     (Nonlin): Non_linearity(       (lin):
-    Linear(in_features=1, out_features=1, bias=True)     )     (In_Lin1): Multilin(       (Non_lin):
-    Non_linearity(         (lin): Linear(in_features=1, out_features=1, bias=True)       )     )     (In_Lin2):
-    Multilin(       (Non_lin): Non_linearity(         (lin): Linear(in_features=1, out_features=1, bias=True)
-    )     )     (Out_Lin): Multilin()   )   (Lin_1): Multilin(     (Non_lin): Non_linearity(       (lin):
-    Linear(in_features=1, out_features=1, bias=True)     )   )   (Lin_2): Multilin(     (Non_lin): Non_linearity(
-    (lin): Linear(in_features=1, out_features=1, bias=True)     )   )   (Product3): Zernike_layer(     (Nonlin):
-    Non_linearity(       (lin): Linear(in_features=1, out_features=1, bias=True)     )     (In_Lin1): Multilin(
-    (Non_lin): Non_linearity(         (lin): Linear(in_features=1, out_features=1, bias=True)       )     )
-    (In_Lin2): Multilin(       (Non_lin): Non_linearity(         (lin): Linear(in_features=1, out_features=1,
-    bias=True)       )     )     (Out_Lin): Multilin()   )   (Product4): Zernike_layer(     (Nonlin):
-    Non_linearity(       (lin): Linear(in_features=1, out_features=1, bias=True)     )     (In_Lin1): Multilin(
-    (Non_lin): Non_linearity(         (lin): Linear(in_features=1, out_features=1, bias=True)       )     )
-    (In_Lin2): Multilin(       (Non_lin): Non_linearity(         (lin): Linear(in_features=1, out_features=1,
-    bias=True)       )     )     (Out_Lin): Multilin()   )   (Product5): Zernike_layer(     (Nonlin):
-    Non_linearity(       (lin): Linear(in_features=1, out_features=1, bias=True)     )     (In_Lin1): Multilin(
-    (Non_lin): Non_linearity(         (lin): Linear(in_features=1, out_features=1, bias=True)       )     )
-    (In_Lin2): Multilin(       (Non_lin): Non_linearity(         (lin): Linear(in_features=1, out_features=1,
-    bias=True)       )     )     (Out_Lin): Multilin()   )   (output_Lin_1): Multilin(     (Non_lin):
-    Non_linearity(       (lin): Linear(in_features=1, out_features=1, bias=True)     )   )   (output_Lin_2):
-    Multilin(     (Non_lin): Non_linearity(       (lin): Linear(in_features=1, out_features=1, bias=True)     )
-    ) )
+         [[-7.5701e-02,  0.0000e+00],
+          [-1.2872e+00,  0.0000e+00],
+          [ 3.2218e+00,  0.0000e+00],
+          [-1.8051e-05,  2.2924e-05],
+          [-8.9736e-01,  2.1483e+00],
+          [-3.8735e-02, -1.8620e-02],
+          [ 1.8100e-01, -7.0806e-01],
+          [-2.3038e-02,  1.1768e-02],
+          [-1.2153e-07, -2.4476e-07]],
 
-  warning(val)
-/home/chazotrn/development/Spherinator/src/spherinator/models/zernike_autoencoder.py:219: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
-  self.Zernike_matrix = torch.load('Zernike_decode_encode{}'.format(n_max))
-/home/chazotrn/.cache/pypoetry/virtualenvs/spherinator--ducJsVz-py3.10/lib/python3.10/site-packages/lightning/pytorch/cli.py:676: `ZernikeAutoencoder.configure_optimizers` will be overridden by `LightningCLI.configure_optimizers`.
-/home/chazotrn/.cache/pypoetry/virtualenvs/spherinator--ducJsVz-py3.10/lib/python3.10/site-packages/torch/optim/lr_scheduler.py:60: UserWarning: The verbose parameter is deprecated. Please use get_last_lr() to access the learning rate.
-  warnings.warn(
-GPU available: True (cuda), used: True
-TPU available: False, using: 0 TPU cores
-HPU available: False, using: 0 HPUs
-LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0,1,2,3]
+         [[ 5.2363e-01,  0.0000e+00],
+          [ 5.3067e-01,  0.0000e+00],
+          [-1.9346e+00,  0.0000e+00],
+          [-5.8102e-05,  7.9551e-05],
+          [ 4.8360e-01, -1.8249e+00],
+          [-4.6647e-02,  7.6651e-02],
+          [ 9.0077e-01, -3.0501e+00],
+          [-1.0560e-01,  5.3971e-02],
+          [-2.5171e-04, -5.0694e-04]],
 
-  | Name               | Type              | Params | Mode  | In sizes       | Out sizes     
----------------------------------------------------------------------------------------------------
-0 | Embedding_Function | Zernike_embedding | 0      | train | ?              | ?             
-1 | encoder            | ZernikeEncoder    | 385 K  | train | [2, 3, 289, 2] | [2, 1, 2, 2]  
-2 | decoder            | ZernikeDecoder    | 433 K  | train | [2, 1, 2, 2]   | [2, 3, 289, 2]
-3 | criterion          | L1Loss            | 0      | train | ?              | ?             
-4 | criterion2         | MSELoss           | 0      | train | ?              | ?             
----------------------------------------------------------------------------------------------------
-819 K     Trainable params
-0         Non-trainable params
-819 K     Total params
-3.277     Total estimated model params size (MB)
-debug on
-tensor(2680.7642, device='cuda:1')
-tensor(25.4172, device='cuda:1')
-tensor(1.0706, device='cuda:1')
-Training: |          | 0/? [00:00<?, ?it/s]Training:   0%|          | 0/199 [00:00<?, ?it/s]Epoch 0:   0%|          | 0/199 [00:00<?, ?it/s] tensor(139.9796, device='cuda:1')
-tensor(3653.3494, device='cuda:1')
-tensor(186.1555, device='cuda:1')
-tensor(139.9796, device='cuda:1') tensor(186.1555, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2867.4358, device='cuda:1') tensor(878.3558, device='cuda:1')
-Epoch 0:   1%|          | 1/199 [00:06<21:26,  0.15it/s]Epoch 0:   1%|          | 1/199 [00:06<21:26,  0.15it/s, v_num=315, train_loss=0.000639, image_loss=0.000264]tensor(128.3654, device='cuda:1')
-tensor(3405.4668, device='cuda:1')
-tensor(181.8562, device='cuda:1')
-tensor(128.3654, device='cuda:1') tensor(181.8562, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2846.0571, device='cuda:1') tensor(862.9536, device='cuda:1')
-Epoch 0:   1%|          | 2/199 [00:08<13:40,  0.24it/s, v_num=315, train_loss=0.000639, image_loss=0.000264]Epoch 0:   1%|          | 2/199 [00:08<13:40,  0.24it/s, v_num=315, train_loss=0.000608, image_loss=0.000263]tensor(130.6633, device='cuda:1')
-tensor(3626.9937, device='cuda:1')
-tensor(171.7389, device='cuda:1')
-tensor(130.6633, device='cuda:1') tensor(171.7389, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2534.9717, device='cuda:1') tensor(859.0963, device='cuda:1')
-Epoch 0:   2%|▏         | 3/199 [00:09<10:45,  0.30it/s, v_num=315, train_loss=0.000608, image_loss=0.000263]Epoch 0:   2%|▏         | 3/199 [00:09<10:45,  0.30it/s, v_num=315, train_loss=0.000594, image_loss=0.00024] tensor(135.3478, device='cuda:1')
-tensor(3431.9258, device='cuda:1')
-tensor(182.3320, device='cuda:1')
-tensor(135.3478, device='cuda:1') tensor(182.3320, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2818.0962, device='cuda:1') tensor(863.4736, device='cuda:1')
-Epoch 0:   2%|▏         | 4/199 [00:11<09:14,  0.35it/s, v_num=315, train_loss=0.000594, image_loss=0.00024]Epoch 0:   2%|▏         | 4/199 [00:11<09:14,  0.35it/s, v_num=315, train_loss=0.000618, image_loss=0.000261]tensor(128.9582, device='cuda:1')
-tensor(3558.8481, device='cuda:1')
-tensor(172.0044, device='cuda:1')
-tensor(128.9582, device='cuda:1') tensor(172.0044, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2508.4404, device='cuda:1') tensor(860.3408, device='cuda:1')
-Epoch 0:   3%|▎         | 5/199 [00:12<08:22,  0.39it/s, v_num=315, train_loss=0.000618, image_loss=0.000261]Epoch 0:   3%|▎         | 5/199 [00:12<08:22,  0.39it/s, v_num=315, train_loss=0.000587, image_loss=0.000236]tensor(127.7932, device='cuda:1')
-tensor(3580.8101, device='cuda:1')
-tensor(179.6020, device='cuda:1')
-tensor(127.7932, device='cuda:1') tensor(179.6020, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2726.7490, device='cuda:1') tensor(856.8373, device='cuda:1')
-Epoch 0:   3%|▎         | 6/199 [00:14<07:44,  0.42it/s, v_num=315, train_loss=0.000587, image_loss=0.000236]Epoch 0:   3%|▎         | 6/199 [00:14<07:44,  0.42it/s, v_num=315, train_loss=0.000603, image_loss=0.000253]tensor(141.5631, device='cuda:1')
-tensor(3379.5505, device='cuda:1')
-tensor(189.8628, device='cuda:1')
-tensor(141.5631, device='cuda:1') tensor(189.8628, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2988.6099, device='cuda:1') tensor(876.8456, device='cuda:1')
-Epoch 0:   4%|▎         | 7/199 [00:15<07:17,  0.44it/s, v_num=315, train_loss=0.000603, image_loss=0.000253]Epoch 0:   4%|▎         | 7/199 [00:15<07:17,  0.44it/s, v_num=315, train_loss=0.000648, image_loss=0.000275]tensor(132.2124, device='cuda:1')
-tensor(3374.5793, device='cuda:1')
-tensor(189.6148, device='cuda:1')
-tensor(132.2124, device='cuda:1') tensor(189.6148, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2947.4519, device='cuda:1') tensor(871.4709, device='cuda:1')
-Epoch 0:   4%|▍         | 8/199 [00:17<06:57,  0.46it/s, v_num=315, train_loss=0.000648, image_loss=0.000275]Epoch 0:   4%|▍         | 8/199 [00:17<06:57,  0.46it/s, v_num=315, train_loss=0.00063, image_loss=0.000269] tensor(129.6823, device='cuda:1')
-tensor(3502.9385, device='cuda:1')
-tensor(170.3889, device='cuda:1')
-tensor(129.6823, device='cuda:1') tensor(170.3889, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2495.9067, device='cuda:1') tensor(855.0048, device='cuda:1')
-Epoch 0:   5%|▍         | 9/199 [00:19<06:42,  0.47it/s, v_num=315, train_loss=0.00063, image_loss=0.000269]Epoch 0:   5%|▍         | 9/199 [00:19<06:42,  0.47it/s, v_num=315, train_loss=0.000586, image_loss=0.000236]tensor(136.0923, device='cuda:1')
-tensor(3524.4595, device='cuda:1')
-tensor(183.4343, device='cuda:1')
-tensor(136.0923, device='cuda:1') tensor(183.4343, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2764.5774, device='cuda:1') tensor(869.1099, device='cuda:1')
-Epoch 0:   5%|▌         | 10/199 [00:20<06:34,  0.48it/s, v_num=315, train_loss=0.000586, image_loss=0.000236]Epoch 0:   5%|▌         | 10/199 [00:20<06:34,  0.48it/s, v_num=315, train_loss=0.000626, image_loss=0.000256]tensor(126.3294, device='cuda:1')
-tensor(3410.4451, device='cuda:1')
-tensor(178.7811, device='cuda:1')
-tensor(126.3294, device='cuda:1') tensor(178.7811, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2704.8157, device='cuda:1') tensor(853.8499, device='cuda:1')
-Epoch 0:   6%|▌         | 11/199 [00:22<06:25,  0.49it/s, v_num=315, train_loss=0.000626, image_loss=0.000256]Epoch 0:   6%|▌         | 11/199 [00:22<06:25,  0.49it/s, v_num=315, train_loss=0.000598, image_loss=0.000251]tensor(128.0057, device='cuda:1')
-tensor(3502.0029, device='cuda:1')
-tensor(185.4411, device='cuda:1')
-tensor(128.0057, device='cuda:1') tensor(185.4411, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2889.9922, device='cuda:1') tensor(861.3433, device='cuda:1')
-Epoch 0:   6%|▌         | 12/199 [00:24<06:15,  0.50it/s, v_num=315, train_loss=0.000598, image_loss=0.000251]Epoch 0:   6%|▌         | 12/199 [00:24<06:15,  0.50it/s, v_num=315, train_loss=0.000614, image_loss=0.000265]tensor(129.1220, device='cuda:1')
-tensor(3476.3257, device='cuda:1')
-tensor(181.2269, device='cuda:1')
-tensor(129.1220, device='cuda:1') tensor(181.2269, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2741.0220, device='cuda:1') tensor(855.2268, device='cuda:1')
-Epoch 0:   7%|▋         | 13/199 [00:25<06:06,  0.51it/s, v_num=315, train_loss=0.000614, image_loss=0.000265]Epoch 0:   7%|▋         | 13/199 [00:25<06:06,  0.51it/s, v_num=315, train_loss=0.000607, image_loss=0.000254]tensor(131.5990, device='cuda:1')
-tensor(3494.5532, device='cuda:1')
-tensor(173.9672, device='cuda:1')
-tensor(131.5990, device='cuda:1') tensor(173.9672, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2638.6113, device='cuda:1') tensor(863.2562, device='cuda:1')
-Epoch 0:   7%|▋         | 14/199 [00:27<05:58,  0.52it/s, v_num=315, train_loss=0.000607, image_loss=0.000254]Epoch 0:   7%|▋         | 14/199 [00:27<05:58,  0.52it/s, v_num=315, train_loss=0.000597, image_loss=0.000247]tensor(134.0841, device='cuda:1')
-tensor(3387.0254, device='cuda:1')
-tensor(177.7714, device='cuda:1')
-tensor(134.0841, device='cuda:1') tensor(177.7714, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2714.2124, device='cuda:1') tensor(870.2211, device='cuda:1')
-Epoch 0:   8%|▊         | 15/199 [00:28<05:51,  0.52it/s, v_num=315, train_loss=0.000597, image_loss=0.000247]Epoch 0:   8%|▊         | 15/199 [00:28<05:51,  0.52it/s, v_num=315, train_loss=0.000611, image_loss=0.000252]tensor(126.9221, device='cuda:1')
-tensor(3537.2654, device='cuda:1')
-tensor(178.2011, device='cuda:1')
-tensor(126.9221, device='cuda:1') tensor(178.2011, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2715.1675, device='cuda:1') tensor(857.0001, device='cuda:1')
-Epoch 0:   8%|▊         | 16/199 [00:30<05:45,  0.53it/s, v_num=315, train_loss=0.000611, image_loss=0.000252]Epoch 0:   8%|▊         | 16/199 [00:30<05:45,  0.53it/s, v_num=315, train_loss=0.000596, image_loss=0.000252]tensor(128.5922, device='cuda:1')
-tensor(3571.5671, device='cuda:1')
-tensor(169.7307, device='cuda:1')
-tensor(128.5922, device='cuda:1') tensor(169.7307, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2485.5649, device='cuda:1') tensor(857.3450, device='cuda:1')
-Epoch 0:   9%|▊         | 17/199 [00:31<05:39,  0.54it/s, v_num=315, train_loss=0.000596, image_loss=0.000252]Epoch 0:   9%|▊         | 17/199 [00:31<05:39,  0.54it/s, v_num=315, train_loss=0.000584, image_loss=0.000236]tensor(129.8341, device='cuda:1')
-tensor(3410.0874, device='cuda:1')
-tensor(180.7507, device='cuda:1')
-tensor(129.8341, device='cuda:1') tensor(180.7507, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2850.6753, device='cuda:1') tensor(865.2222, device='cuda:1')
-Epoch 0:   9%|▉         | 18/199 [00:33<05:34,  0.54it/s, v_num=315, train_loss=0.000584, image_loss=0.000236]Epoch 0:   9%|▉         | 18/199 [00:33<05:34,  0.54it/s, v_num=315, train_loss=0.000608, image_loss=0.000263]tensor(131.4137, device='cuda:1')
-tensor(3418.6504, device='cuda:1')
-tensor(178.1983, device='cuda:1')
-tensor(131.4137, device='cuda:1') tensor(178.1983, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2691.8325, device='cuda:1') tensor(862.3382, device='cuda:1')
-Epoch 0:  10%|▉         | 19/199 [00:34<05:29,  0.55it/s, v_num=315, train_loss=0.000608, image_loss=0.000263]Epoch 0:  10%|▉         | 19/199 [00:34<05:29,  0.55it/s, v_num=315, train_loss=0.000604, image_loss=0.000251]tensor(130.3976, device='cuda:1')
-tensor(3372.3643, device='cuda:1')
-tensor(183.2111, device='cuda:1')
-tensor(130.3976, device='cuda:1') tensor(183.2111, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2772.9519, device='cuda:1') tensor(861.0311, device='cuda:1')
-Epoch 0:  10%|█         | 20/199 [00:36<05:25,  0.55it/s, v_num=315, train_loss=0.000604, image_loss=0.000251]Epoch 0:  10%|█         | 20/199 [00:36<05:25,  0.55it/s, v_num=315, train_loss=0.000612, image_loss=0.000256]tensor(130.8878, device='cuda:1')
-tensor(3609.3149, device='cuda:1')
-tensor(174.8563, device='cuda:1')
-tensor(130.8878, device='cuda:1') tensor(174.8563, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2564.7334, device='cuda:1') tensor(862.7912, device='cuda:1')
-Epoch 0:  11%|█         | 21/199 [00:37<05:21,  0.55it/s, v_num=315, train_loss=0.000612, image_loss=0.000256]Epoch 0:  11%|█         | 21/199 [00:37<05:21,  0.55it/s, v_num=315, train_loss=0.000598, image_loss=0.000241]tensor(134.1703, device='cuda:1')
-tensor(3583.3909, device='cuda:1')
-tensor(187.0836, device='cuda:1')
-tensor(134.1703, device='cuda:1') tensor(187.0836, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2893.7583, device='cuda:1') tensor(862.9883, device='cuda:1')
-Epoch 0:  11%|█         | 22/199 [00:39<05:17,  0.56it/s, v_num=315, train_loss=0.000598, image_loss=0.000241]Epoch 0:  11%|█         | 22/199 [00:39<05:17,  0.56it/s, v_num=315, train_loss=0.000626, image_loss=0.000266]tensor(132.2271, device='cuda:1')
-tensor(3542.7659, device='cuda:1')
-tensor(180.3679, device='cuda:1')
-tensor(132.2271, device='cuda:1') tensor(180.3679, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2701.8196, device='cuda:1') tensor(859.4880, device='cuda:1')
-Epoch 0:  12%|█▏        | 23/199 [00:40<05:13,  0.56it/s, v_num=315, train_loss=0.000626, image_loss=0.000266]Epoch 0:  12%|█▏        | 23/199 [00:40<05:13,  0.56it/s, v_num=315, train_loss=0.00061, image_loss=0.000251] tensor(129.1285, device='cuda:1')
-tensor(3523.2188, device='cuda:1')
-tensor(176.9445, device='cuda:1')
-tensor(129.1285, device='cuda:1') tensor(176.9445, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2611.4634, device='cuda:1') tensor(862.1267, device='cuda:1')
-Epoch 0:  12%|█▏        | 24/199 [00:42<05:09,  0.57it/s, v_num=315, train_loss=0.00061, image_loss=0.000251]Epoch 0:  12%|█▏        | 24/199 [00:42<05:09,  0.57it/s, v_num=315, train_loss=0.000596, image_loss=0.000244]tensor(129.2587, device='cuda:1')
-tensor(3434.2471, device='cuda:1')
-tensor(178.7338, device='cuda:1')
-tensor(129.2587, device='cuda:1') tensor(178.7338, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2710.3965, device='cuda:1') tensor(860.6045, device='cuda:1')
-Epoch 0:  13%|█▎        | 25/199 [00:44<05:06,  0.57it/s, v_num=315, train_loss=0.000596, image_loss=0.000244]Epoch 0:  13%|█▎        | 25/199 [00:44<05:06,  0.57it/s, v_num=315, train_loss=0.000601, image_loss=0.000251]tensor(126.0060, device='cuda:1')
-tensor(3283.4658, device='cuda:1')
-tensor(180.1950, device='cuda:1')
-tensor(126.0060, device='cuda:1') tensor(180.1950, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2766.8032, device='cuda:1') tensor(857.0833, device='cuda:1')
-Epoch 0:  13%|█▎        | 26/199 [00:45<05:04,  0.57it/s, v_num=315, train_loss=0.000601, image_loss=0.000251]Epoch 0:  13%|█▎        | 26/199 [00:45<05:04,  0.57it/s, v_num=315, train_loss=0.000598, image_loss=0.000257]tensor(133.6448, device='cuda:1')
-tensor(3547.9058, device='cuda:1')
-tensor(191.7774, device='cuda:1')
-tensor(133.6448, device='cuda:1') tensor(191.7774, device='cuda:1')
-tensor(768., device='cuda:1') tensor(3091.0747, device='cuda:1') tensor(866.7195, device='cuda:1')
-Epoch 0:  14%|█▎        | 27/199 [00:47<05:02,  0.57it/s, v_num=315, train_loss=0.000598, image_loss=0.000257]Epoch 0:  14%|█▎        | 27/199 [00:47<05:02,  0.57it/s, v_num=315, train_loss=0.000639, image_loss=0.000282]tensor(125.2428, device='cuda:1')
-tensor(3239.8850, device='cuda:1')
-tensor(179.3288, device='cuda:1')
-tensor(125.2428, device='cuda:1') tensor(179.3288, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2715.8193, device='cuda:1') tensor(854.8562, device='cuda:1')
-Epoch 0:  14%|█▍        | 28/199 [00:49<05:01,  0.57it/s, v_num=315, train_loss=0.000639, image_loss=0.000282]Epoch 0:  14%|█▍        | 28/199 [00:49<05:01,  0.57it/s, v_num=315, train_loss=0.000594, image_loss=0.00025] tensor(129.8625, device='cuda:1')
-tensor(3483.3667, device='cuda:1')
-tensor(179.8384, device='cuda:1')
-tensor(129.8625, device='cuda:1') tensor(179.8384, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2729.7576, device='cuda:1') tensor(857.9897, device='cuda:1')
-Epoch 0:  15%|█▍        | 29/199 [00:51<04:59,  0.57it/s, v_num=315, train_loss=0.000594, image_loss=0.00025]Epoch 0:  15%|█▍        | 29/199 [00:51<04:59,  0.57it/s, v_num=315, train_loss=0.000606, image_loss=0.000254]tensor(133.8435, device='cuda:1')
-tensor(3390.1160, device='cuda:1')
-tensor(182.3943, device='cuda:1')
-tensor(133.8435, device='cuda:1') tensor(182.3943, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2825.5034, device='cuda:1') tensor(869.1072, device='cuda:1')
-Epoch 0:  15%|█▌        | 30/199 [00:52<04:57,  0.57it/s, v_num=315, train_loss=0.000606, image_loss=0.000254]Epoch 0:  15%|█▌        | 30/199 [00:52<04:57,  0.57it/s, v_num=315, train_loss=0.000623, image_loss=0.000262]tensor(131.7396, device='cuda:1')
-tensor(3476.8540, device='cuda:1')
-tensor(183.0078, device='cuda:1')
-tensor(131.7396, device='cuda:1') tensor(183.0078, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2753.6082, device='cuda:1') tensor(863.6748, device='cuda:1')
-Epoch 0:  16%|█▌        | 31/199 [00:54<04:53,  0.57it/s, v_num=315, train_loss=0.000623, image_loss=0.000262]Epoch 0:  16%|█▌        | 31/199 [00:54<04:53,  0.57it/s, v_num=315, train_loss=0.000618, image_loss=0.000256]tensor(133.1345, device='cuda:1')
-tensor(3405.0776, device='cuda:1')
-tensor(174.6046, device='cuda:1')
-tensor(133.1345, device='cuda:1') tensor(174.6046, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2589.8108, device='cuda:1') tensor(878.2803, device='cuda:1')
-Epoch 0:  16%|█▌        | 32/199 [00:55<04:51,  0.57it/s, v_num=315, train_loss=0.000618, image_loss=0.000256]Epoch 0:  16%|█▌        | 32/199 [00:55<04:51,  0.57it/s, v_num=315, train_loss=0.000603, image_loss=0.000243]tensor(138.8345, device='cuda:1')
-tensor(3459.0259, device='cuda:1')
-tensor(180.1047, device='cuda:1')
-tensor(138.8345, device='cuda:1') tensor(180.1047, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2763.1943, device='cuda:1') tensor(872.5066, device='cuda:1')
-Epoch 0:  17%|█▋        | 33/199 [00:57<04:48,  0.58it/s, v_num=315, train_loss=0.000603, image_loss=0.000243]Epoch 0:  17%|█▋        | 33/199 [00:57<04:48,  0.58it/s, v_num=315, train_loss=0.000624, image_loss=0.000257]tensor(137.1877, device='cuda:1')
-tensor(3407.1062, device='cuda:1')
-tensor(181.7497, device='cuda:1')
-tensor(137.1877, device='cuda:1') tensor(181.7497, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2696.0625, device='cuda:1') tensor(871.4493, device='cuda:1')
-Epoch 0:  17%|█▋        | 34/199 [00:58<04:45,  0.58it/s, v_num=315, train_loss=0.000624, image_loss=0.000257]Epoch 0:  17%|█▋        | 34/199 [00:58<04:45,  0.58it/s, v_num=315, train_loss=0.000626, image_loss=0.000251]tensor(134.0630, device='cuda:1')
-tensor(3468.6611, device='cuda:1')
-tensor(176.2280, device='cuda:1')
-tensor(134.0630, device='cuda:1') tensor(176.2280, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2617.0505, device='cuda:1') tensor(867.6182, device='cuda:1')
-Epoch 0:  18%|█▊        | 35/199 [01:00<04:42,  0.58it/s, v_num=315, train_loss=0.000626, image_loss=0.000251]Epoch 0:  18%|█▊        | 35/199 [01:00<04:42,  0.58it/s, v_num=315, train_loss=0.000607, image_loss=0.000245]tensor(130.9158, device='cuda:1')
-tensor(3587.4365, device='cuda:1')
-tensor(186.5395, device='cuda:1')
-tensor(130.9158, device='cuda:1') tensor(186.5395, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2898.1208, device='cuda:1') tensor(861.5824, device='cuda:1')
-Epoch 0:  18%|█▊        | 36/199 [01:01<04:39,  0.58it/s, v_num=315, train_loss=0.000607, image_loss=0.000245]Epoch 0:  18%|█▊        | 36/199 [01:01<04:39,  0.58it/s, v_num=315, train_loss=0.00062, image_loss=0.000266] tensor(125.4529, device='cuda:1')
-tensor(3430.2197, device='cuda:1')
-tensor(178.9837, device='cuda:1')
-tensor(125.4529, device='cuda:1') tensor(178.9837, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2706.5508, device='cuda:1') tensor(857.0084, device='cuda:1')
-Epoch 0:  19%|█▊        | 37/199 [01:03<04:37,  0.58it/s, v_num=315, train_loss=0.00062, image_loss=0.000266]Epoch 0:  19%|█▊        | 37/199 [01:03<04:37,  0.58it/s, v_num=315, train_loss=0.000594, image_loss=0.000251]tensor(132.8519, device='cuda:1')
-tensor(3529.0679, device='cuda:1')
-tensor(178.8156, device='cuda:1')
-tensor(132.8519, device='cuda:1') tensor(178.8156, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2731.0923, device='cuda:1') tensor(864.5527, device='cuda:1')
-Epoch 0:  19%|█▉        | 38/199 [01:04<04:34,  0.59it/s, v_num=315, train_loss=0.000594, image_loss=0.000251]Epoch 0:  19%|█▉        | 38/199 [01:04<04:34,  0.59it/s, v_num=315, train_loss=0.000608, image_loss=0.000254]tensor(133.6505, device='cuda:1')
-tensor(3629.6096, device='cuda:1')
-tensor(177.7395, device='cuda:1')
-tensor(133.6505, device='cuda:1') tensor(177.7395, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2738.3450, device='cuda:1') tensor(864.2322, device='cuda:1')
-Epoch 0:  20%|█▉        | 39/199 [01:06<04:32,  0.59it/s, v_num=315, train_loss=0.000608, image_loss=0.000254]Epoch 0:  20%|█▉        | 39/199 [01:06<04:32,  0.59it/s, v_num=315, train_loss=0.00061, image_loss=0.000255] tensor(125.4257, device='cuda:1')
-tensor(3419.4531, device='cuda:1')
-tensor(177.5697, device='cuda:1')
-tensor(125.4257, device='cuda:1') tensor(177.5697, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2734.3496, device='cuda:1') tensor(856.6881, device='cuda:1')
-Epoch 0:  20%|██        | 40/199 [01:07<04:29,  0.59it/s, v_num=315, train_loss=0.00061, image_loss=0.000255]Epoch 0:  20%|██        | 40/199 [01:07<04:29,  0.59it/s, v_num=315, train_loss=0.000589, image_loss=0.000253]tensor(128.9943, device='cuda:1')
-tensor(3371.0464, device='cuda:1')
-tensor(170.4433, device='cuda:1')
-tensor(128.9943, device='cuda:1') tensor(170.4433, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2584.4546, device='cuda:1') tensor(865.8932, device='cuda:1')
-Epoch 0:  21%|██        | 41/199 [01:09<04:27,  0.59it/s, v_num=315, train_loss=0.000589, image_loss=0.000253]Epoch 0:  21%|██        | 41/199 [01:09<04:27,  0.59it/s, v_num=315, train_loss=0.000586, image_loss=0.000242]tensor(138.7038, device='cuda:1')
-tensor(3566.7573, device='cuda:1')
-tensor(180.6911, device='cuda:1')
-tensor(138.7038, device='cuda:1') tensor(180.6911, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2712.2437, device='cuda:1') tensor(874.4272, device='cuda:1')
-Epoch 0:  21%|██        | 42/199 [01:10<04:25,  0.59it/s, v_num=315, train_loss=0.000586, image_loss=0.000242]Epoch 0:  21%|██        | 42/199 [01:10<04:25,  0.59it/s, v_num=315, train_loss=0.000624, image_loss=0.000252]tensor(135.4287, device='cuda:1')
-tensor(3440.1562, device='cuda:1')
-tensor(177.9304, device='cuda:1')
-tensor(135.4287, device='cuda:1') tensor(177.9304, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2667.1143, device='cuda:1') tensor(870.8762, device='cuda:1')
-Epoch 0:  22%|██▏       | 43/199 [01:12<04:22,  0.59it/s, v_num=315, train_loss=0.000624, image_loss=0.000252]Epoch 0:  22%|██▏       | 43/199 [01:12<04:22,  0.59it/s, v_num=315, train_loss=0.000614, image_loss=0.000249]/home/chazotrn/.cache/pypoetry/virtualenvs/spherinator--ducJsVz-py3.10/lib/python3.10/site-packages/lightning/pytorch/trainer/call.py:54: Detected KeyboardInterrupt, attempting graceful shutdown...
-tensor(116.3201, device='cuda:1')
-tensor(3496.1387, device='cuda:1')
-tensor(187.7462, device='cuda:1')
-tensor(116.3201, device='cuda:1') tensor(187.7462, device='cuda:1')
-tensor(768., device='cuda:1') tensor(2964.8044, device='cuda:1') tensor(846.0233, device='cuda:1')
+         [[ 1.1843e-01,  0.0000e+00],
+          [ 2.1173e+00,  0.0000e+00],
+          [ 7.3048e-01,  0.0000e+00],
+          [ 4.5411e-05, -6.3626e-05],
+          [-4.9064e-01,  1.1654e+00],
+          [-5.1828e-02,  3.3462e-02],
+          [ 6.5652e-01, -3.3068e+00],
+          [-2.3996e-02,  1.2202e-02],
+          [-1.7739e-04, -3.5727e-04]],
+
+         [[-5.6922e-01,  0.0000e+00],
+          [-7.2115e-01,  0.0000e+00],
+          [ 9.1228e-01,  0.0000e+00],
+          [ 1.4311e-04, -1.9752e-04],
+          [-1.5700e+00,  3.1819e+00],
+          [ 2.5873e-03,  4.7543e-02],
+          [-4.2986e-01, -1.8827e+00],
+          [ 3.4168e-02, -1.7580e-02],
+          [-8.3874e-04, -1.6892e-03]]],
+
+
+        [[[ 5.7581e-01,  0.0000e+00],
+          [-1.1212e+00,  0.0000e+00],
+          [-1.0317e+00,  0.0000e+00],
+          [ 5.3549e-01,  1.8206e+00],
+          [ 1.7787e+00,  2.0674e+00],
+          [ 1.8168e-02,  3.2244e-02],
+          [ 2.7219e-01, -1.9257e-01],
+          [ 1.1581e-06,  1.1414e-06],
+          [ 1.5765e+00, -1.3076e+00]],
+
+         [[ 1.7303e+00,  0.0000e+00],
+          [ 1.7292e-01,  0.0000e+00],
+          [ 2.1238e+00,  0.0000e+00],
+          [ 1.8314e-01,  6.2267e-01],
+          [ 8.8388e-01,  9.4444e-01],
+          [ 1.0917e+00,  1.9447e+00],
+          [-8.6306e-02,  2.2171e-01],
+          [ 2.5594e-05,  2.5225e-05],
+          [-9.9258e-01,  1.5348e+00]],
+
+         [[ 1.2417e+00,  0.0000e+00],
+          [ 3.2988e-01,  0.0000e+00],
+          [ 2.2722e+00,  0.0000e+00],
+          [ 1.6060e-01,  5.4601e-01],
+          [-1.0681e+00, -9.0058e-01],
+          [-9.1282e-02, -1.6261e-01],
+          [ 4.1397e-01,  1.5643e+00],
+          [-1.1871e-04, -1.1699e-04],
+          [-5.7692e-02, -2.5007e+00]],
+
+         [[-3.9401e-01,  0.0000e+00],
+          [-2.6130e+00,  0.0000e+00],
+          [ 5.6125e-01,  0.0000e+00],
+          [ 4.5128e-01,  1.5343e+00],
+          [ 8.5390e-01,  9.0712e-01],
+          [ 6.0189e-01,  1.0722e+00],
+          [ 3.8678e-01,  1.9957e+00],
+          [ 1.0578e-04,  1.0425e-04],
+          [-3.2292e-01,  9.1835e-01]],
+
+         [[-9.3208e-01,  0.0000e+00],
+          [ 9.8872e-01,  0.0000e+00],
+          [-1.0211e+00,  0.0000e+00],
+          [-7.2413e-01, -2.4620e+00],
+          [ 1.3377e+00,  1.6925e+00],
+          [ 7.4559e-01,  1.3281e+00],
+          [ 2.2727e-01,  4.2591e-02],
+          [ 6.3297e-05,  6.2383e-05],
+          [-1.7626e-01,  1.2111e+00]]]], device='cuda:1',
+       grad_fn=<MulBackward0>)
+post
+tensor([[[4.4964e-02, 6.9159e-02, 1.4477e+01, 2.1759e-09, 4.9036e-02,
+          9.7750e-04, 3.3589e+00, 1.2830e-04, 4.4890e-10],
+         [5.7306e-03, 1.6568e+00, 1.0380e+01, 8.5136e-10, 5.4206e+00,
+          1.8471e-03, 5.3411e-01, 6.6922e-04, 7.4676e-14],
+         [2.7418e-01, 2.8161e-01, 3.7428e+00, 9.7043e-09, 3.5641e+00,
+          8.0513e-03, 1.0115e+01, 1.4065e-02, 3.2034e-07],
+         [1.4026e-02, 4.4830e+00, 5.3360e-01, 6.1104e-09, 1.5989e+00,
+          3.8059e-03, 1.1366e+01, 7.2468e-04, 1.5911e-07],
+         [3.2401e-01, 5.2006e-01, 8.3225e-01, 5.9492e-08, 1.2590e+01,
+          2.2671e-03, 3.7292e+00, 1.4765e-03, 3.5569e-06]],
+
+        [[3.3156e-01, 1.2572e+00, 1.0644e+00, 3.6014e+00, 7.4376e+00,
+          1.3698e-03, 1.1117e-01, 2.6441e-12, 4.1951e+00],
+         [2.9941e+00, 2.9902e-02, 4.5106e+00, 4.2126e-01, 1.6732e+00,
+          4.9735e+00, 5.6603e-02, 1.2914e-09, 3.3408e+00],
+         [1.5418e+00, 1.0882e-01, 5.1631e+00, 3.2392e-01, 1.9520e+00,
+          3.4774e-02, 2.6185e+00, 2.7778e-08, 6.2570e+00],
+         [1.5524e-01, 6.8280e+00, 3.1500e-01, 2.5578e+00, 1.5520e+00,
+          1.5119e+00, 4.1323e+00, 2.2057e-08, 9.4764e-01],
+         [8.6876e-01, 9.7757e-01, 1.0427e+00, 6.5856e+00, 4.6541e+00,
+          2.3198e+00, 5.3467e-02, 7.8981e-09, 1.4979e+00]]], device='cuda:1',
+       grad_fn=<SumBackward1>)
+normal
+pre
+tensor([[[[-2.1204e-01,  0.0000e+00],
+          [-2.6298e-01,  0.0000e+00],
+          [-3.8048e+00,  0.0000e+00],
+          [ 3.8233e-05,  2.6723e-05],
+          [-2.2117e-01, -1.0901e-02],
+          [ 1.4970e-02,  2.7448e-02],
+          [-1.3683e+00,  1.2193e+00],
+          [ 5.1433e-03,  1.0092e-02],
+          [ 9.4225e-06,  1.8977e-05]],
+
+         [[-7.5700e-02,  0.0000e+00],
+          [-1.2872e+00,  0.0000e+00],
+          [ 3.2218e+00,  0.0000e+00],
+          [-2.2924e-05, -1.8051e-05],
+          [-2.1483e+00, -8.9738e-01],
+          [ 3.8735e-02,  1.8620e-02],
+          [-1.8100e-01,  7.0806e-01],
+          [ 1.1768e-02,  2.3038e-02],
+          [-1.2153e-07, -2.4476e-07]],
+
+         [[ 5.2362e-01,  0.0000e+00],
+          [ 5.3067e-01,  0.0000e+00],
+          [-1.9346e+00,  0.0000e+00],
+          [-7.9551e-05, -5.8102e-05],
+          [ 1.8249e+00,  4.8362e-01],
+          [ 4.6647e-02, -7.6651e-02],
+          [-9.0077e-01,  3.0501e+00],
+          [ 5.3971e-02,  1.0560e-01],
+          [-2.5171e-04, -5.0694e-04]],
+
+         [[ 1.1843e-01,  0.0000e+00],
+          [ 2.1173e+00,  0.0000e+00],
+          [ 7.3048e-01,  0.0000e+00],
+          [ 6.3626e-05,  4.5411e-05],
+          [-1.1654e+00, -4.9065e-01],
+          [ 5.1828e-02, -3.3462e-02],
+          [-6.5652e-01,  3.3068e+00],
+          [ 1.2202e-02,  2.3996e-02],
+          [-1.7739e-04, -3.5727e-04]],
+
+         [[-5.6921e-01,  0.0000e+00],
+          [-7.2115e-01,  0.0000e+00],
+          [ 9.1228e-01,  0.0000e+00],
+          [ 1.9752e-04,  1.4311e-04],
+          [-3.1819e+00, -1.5700e+00],
+          [-2.5872e-03, -4.7543e-02],
+          [ 4.2986e-01,  1.8826e+00],
+          [-1.7580e-02, -3.4168e-02],
+          [-8.3874e-04, -1.6892e-03]]],
+
+
+        [[[ 5.7581e-01,  0.0000e+00],
+          [-1.1212e+00,  0.0000e+00],
+          [-1.0317e+00,  0.0000e+00],
+          [-1.8206e+00,  5.3549e-01],
+          [-2.0674e+00,  1.7787e+00],
+          [-1.8168e-02, -3.2244e-02],
+          [-2.7219e-01,  1.9257e-01],
+          [ 1.1414e-06, -1.1581e-06],
+          [ 1.5765e+00, -1.3076e+00]],
+
+         [[ 1.7303e+00,  0.0000e+00],
+          [ 1.7292e-01,  0.0000e+00],
+          [ 2.1238e+00,  0.0000e+00],
+          [-6.2267e-01,  1.8314e-01],
+          [-9.4444e-01,  8.8388e-01],
+          [-1.0917e+00, -1.9447e+00],
+          [ 8.6306e-02, -2.2171e-01],
+          [ 2.5225e-05, -2.5594e-05],
+          [-9.9259e-01,  1.5348e+00]],
+
+         [[ 1.2417e+00,  0.0000e+00],
+          [ 3.2988e-01,  0.0000e+00],
+          [ 2.2722e+00,  0.0000e+00],
+          [-5.4601e-01,  1.6060e-01],
+          [ 9.0059e-01, -1.0681e+00],
+          [ 9.1282e-02,  1.6261e-01],
+          [-4.1397e-01, -1.5643e+00],
+          [-1.1699e-04,  1.1871e-04],
+          [-5.7700e-02, -2.5007e+00]],
+
+         [[-3.9401e-01,  0.0000e+00],
+          [-2.6130e+00,  0.0000e+00],
+          [ 5.6125e-01,  0.0000e+00],
+          [-1.5343e+00,  4.5128e-01],
+          [-9.0712e-01,  8.5389e-01],
+          [-6.0189e-01, -1.0722e+00],
+          [-3.8678e-01, -1.9957e+00],
+          [ 1.0425e-04, -1.0578e-04],
+          [-3.2292e-01,  9.1834e-01]],
+
+         [[-9.3207e-01,  0.0000e+00],
+          [ 9.8872e-01,  0.0000e+00],
+          [-1.0211e+00,  0.0000e+00],
+          [ 2.4620e+00, -7.2413e-01],
+          [-1.6925e+00,  1.3377e+00],
+          [-7.4559e-01, -1.3281e+00],
+          [-2.2727e-01, -4.2590e-02],
+          [ 6.2383e-05, -6.3297e-05],
+          [-1.7625e-01,  1.2111e+00]]]], device='cuda:1',
+       grad_fn=<MulBackward0>)
+post
+tensor([[[4.4963e-02, 6.9159e-02, 1.4477e+01, 2.1759e-09, 4.9036e-02,
+          9.7751e-04, 3.3589e+00, 1.2830e-04, 4.4890e-10],
+         [5.7304e-03, 1.6568e+00, 1.0380e+01, 8.5135e-10, 5.4207e+00,
+          1.8471e-03, 5.3411e-01, 6.6922e-04, 7.4676e-14],
+         [2.7418e-01, 2.8161e-01, 3.7428e+00, 9.7042e-09, 3.5641e+00,
+          8.0513e-03, 1.0115e+01, 1.4065e-02, 3.2034e-07],
+         [1.4026e-02, 4.4830e+00, 5.3360e-01, 6.1104e-09, 1.5989e+00,
+          3.8059e-03, 1.1366e+01, 7.2468e-04, 1.5911e-07],
+         [3.2400e-01, 5.2006e-01, 8.3226e-01, 5.9492e-08, 1.2590e+01,
+          2.2671e-03, 3.7291e+00, 1.4765e-03, 3.5569e-06]],
+
+        [[3.3156e-01, 1.2572e+00, 1.0644e+00, 3.6014e+00, 7.4376e+00,
+          1.3698e-03, 1.1117e-01, 2.6440e-12, 4.1951e+00],
+         [2.9941e+00, 2.9902e-02, 4.5106e+00, 4.2126e-01, 1.6732e+00,
+          4.9735e+00, 5.6603e-02, 1.2914e-09, 3.3408e+00],
+         [1.5418e+00, 1.0882e-01, 5.1631e+00, 3.2392e-01, 1.9520e+00,
+          3.4774e-02, 2.6185e+00, 2.7778e-08, 6.2570e+00],
+         [1.5524e-01, 6.8280e+00, 3.1500e-01, 2.5578e+00, 1.5520e+00,
+          1.5119e+00, 4.1323e+00, 2.2057e-08, 9.4764e-01],
+         [8.6876e-01, 9.7757e-01, 1.0427e+00, 6.5856e+00, 4.6541e+00,
+          2.3198e+00, 5.3467e-02, 7.8981e-09, 1.4979e+00]]], device='cuda:1',
+       grad_fn=<SumBackward1>)
+tensor([[[0.5112, 0.5173, 1.0000, 0.5000, 0.5123, 0.5002, 0.9664, 0.5000,
+          0.5000],
+         [0.5014, 0.8398, 1.0000, 0.5000, 0.9956, 0.5005, 0.6304, 0.5002,
+          0.5000],
+         [0.5681, 0.5699, 0.9769, 0.5000, 0.9725, 0.5020, 1.0000, 0.5035,
+          0.5000],
+         [0.5035, 0.9888, 0.6303, 0.5000, 0.8319, 0.5010, 1.0000, 0.5002,
+          0.5000],
+         [0.5803, 0.6272, 0.6968, 0.5000, 1.0000, 0.5006, 0.9765, 0.5004,
+          0.5000]],
+
+        [[0.5821, 0.7785, 0.7435, 0.9734, 0.9994, 0.5003, 0.5278, 0.5000,
+          0.9852],
+         [0.9523, 0.5075, 0.9891, 0.6038, 0.8420, 0.9931, 0.5141, 0.5000,
+          0.9658],
+         [0.8237, 0.5272, 0.9943, 0.5803, 0.8757, 0.5087, 0.9320, 0.5000,
+          0.9981],
+         [0.5387, 0.9989, 0.5781, 0.9281, 0.8252, 0.8193, 0.9842, 0.5000,
+          0.7206],
+         [0.7045, 0.7266, 0.7394, 0.9986, 0.9906, 0.9105, 0.5134, 0.5000,
+          0.8173]]], device='cuda:1', grad_fn=<SigmoidBackward0>)
+tensor([[[0.5112, 0.5173, 1.0000, 0.5000, 0.5123, 0.5002, 0.9664, 0.5000,
+          0.5000],
+         [0.5014, 0.8398, 1.0000, 0.5000, 0.9956, 0.5005, 0.6304, 0.5002,
+          0.5000],
+         [0.5681, 0.5699, 0.9769, 0.5000, 0.9725, 0.5020, 1.0000, 0.5035,
+          0.5000],
+         [0.5035, 0.9888, 0.6303, 0.5000, 0.8319, 0.5010, 1.0000, 0.5002,
+          0.5000],
+         [0.5803, 0.6272, 0.6968, 0.5000, 1.0000, 0.5006, 0.9766, 0.5004,
+          0.5000]],
+
+        [[0.5821, 0.7785, 0.7435, 0.9734, 0.9994, 0.5003, 0.5278, 0.5000,
+          0.9852],
+         [0.9523, 0.5075, 0.9891, 0.6038, 0.8420, 0.9931, 0.5141, 0.5000,
+          0.9658],
+         [0.8237, 0.5272, 0.9943, 0.5803, 0.8757, 0.5087, 0.9320, 0.5000,
+          0.9981],
+         [0.5387, 0.9989, 0.5781, 0.9281, 0.8252, 0.8193, 0.9842, 0.5000,
+          0.7206],
+         [0.7045, 0.7266, 0.7394, 0.9986, 0.9906, 0.9105, 0.5134, 0.5000,
+          0.8173]]], device='cuda:1', grad_fn=<SigmoidBackward0>)
+tensor([[[0.0081, 0.0082, 0.0158, 0.0079, 0.0081, 0.0079, 0.0152, 0.0079,
+          0.0079],
+         [0.0079, 0.0132, 0.0158, 0.0079, 0.0157, 0.0079, 0.0099, 0.0079,
+          0.0079],
+         [0.0090, 0.0090, 0.0154, 0.0079, 0.0153, 0.0079, 0.0158, 0.0079,
+          0.0079],
+         [0.0079, 0.0156, 0.0099, 0.0079, 0.0131, 0.0079, 0.0158, 0.0079,
+          0.0079],
+         [0.0092, 0.0099, 0.0110, 0.0079, 0.0158, 0.0079, 0.0154, 0.0079,
+          0.0079]],
+
+        [[0.0092, 0.0123, 0.0117, 0.0154, 0.0158, 0.0079, 0.0083, 0.0079,
+          0.0155],
+         [0.0150, 0.0080, 0.0156, 0.0095, 0.0133, 0.0157, 0.0081, 0.0079,
+          0.0152],
+         [0.0130, 0.0083, 0.0157, 0.0092, 0.0138, 0.0080, 0.0147, 0.0079,
+          0.0157],
+         [0.0085, 0.0158, 0.0091, 0.0146, 0.0130, 0.0129, 0.0155, 0.0079,
+          0.0114],
+         [0.0111, 0.0115, 0.0117, 0.0158, 0.0156, 0.0144, 0.0081, 0.0079,
+          0.0129]]], device='cuda:1', grad_fn=<DivBackward0>)
+tensor([[[0.0081, 0.0082, 0.0158, 0.0079, 0.0081, 0.0079, 0.0152, 0.0079,
+          0.0079],
+         [0.0079, 0.0132, 0.0158, 0.0079, 0.0157, 0.0079, 0.0099, 0.0079,
+          0.0079],
+         [0.0090, 0.0090, 0.0154, 0.0079, 0.0153, 0.0079, 0.0158, 0.0079,
+          0.0079],
+         [0.0079, 0.0156, 0.0099, 0.0079, 0.0131, 0.0079, 0.0158, 0.0079,
+          0.0079],
+         [0.0092, 0.0099, 0.0110, 0.0079, 0.0158, 0.0079, 0.0154, 0.0079,
+          0.0079]],
+
+        [[0.0092, 0.0123, 0.0117, 0.0154, 0.0158, 0.0079, 0.0083, 0.0079,
+          0.0155],
+         [0.0150, 0.0080, 0.0156, 0.0095, 0.0133, 0.0157, 0.0081, 0.0079,
+          0.0152],
+         [0.0130, 0.0083, 0.0157, 0.0092, 0.0138, 0.0080, 0.0147, 0.0079,
+          0.0157],
+         [0.0085, 0.0158, 0.0091, 0.0146, 0.0130, 0.0129, 0.0155, 0.0079,
+          0.0114],
+         [0.0111, 0.0115, 0.0117, 0.0158, 0.0156, 0.0144, 0.0081, 0.0079,
+          0.0129]]], device='cuda:1', grad_fn=<DivBackward0>)

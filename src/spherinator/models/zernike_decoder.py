@@ -13,6 +13,25 @@ class ZernikeDecoder(nn.Module):
         super().__init__()
         test_dimens = False
 
+        self.norm00 = nn.BatchNorm2d(10)
+        self.norm00.bias.requires_grad = False
+
+        self.norm0 = nn.BatchNorm2d(10)
+        self.norm0.bias.requires_grad = False
+        self.norm1 = nn.BatchNorm2d(10)
+        self.norm1.bias.requires_grad = False
+        self.norm2 = nn.BatchNorm2d(10)
+        self.norm2.bias.requires_grad = False
+
+        self.norm3 = nn.BatchNorm2d(10)
+        self.norm3.bias.requires_grad = False
+
+        self.norm4 = nn.BatchNorm2d(10)
+        self.norm4.bias.requires_grad = False
+
+        self.norm5 = nn.BatchNorm2d(10)
+        self.norm5.bias.requires_grad = False
+
         n_max = n_output
         self.Product00 = Zernike_layer( n_max = 1,n_max_2=1, n_out=2, multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)
 
@@ -66,6 +85,8 @@ class ZernikeDecoder(nn.Module):
         # print('normalized')
         a = 1/(torch.sum(torch.abs(x),dim=(-1,-2),keepdim=True)+eps)
         x = x*a
+        #x2 = x/(torch.sum(torch.square(x),dim=(-1,-2),keepdim=True)+eps)
+        #x = self.norm00(x)
         x = self.Product00(x,x)
         a = 1/(torch.sum(torch.abs(x),dim=(-1,-2),keepdim=True)+eps)
         x = x*a
@@ -75,6 +96,8 @@ class ZernikeDecoder(nn.Module):
         # al = 1/a
         # x = torch.einsum('ijkl,ij->ijkl', x,al)
 
+        #x2 = x/(torch.sum(torch.square(x),dim=(-1,-2),keepdim=True)+eps)
+        #x = self.norm0(x)
         x = self.Product0(x,x)
         a = 1/(torch.sum(torch.abs(x),dim=(-1,-2),keepdim=True)+eps)
         x = x*a
@@ -84,6 +107,8 @@ class ZernikeDecoder(nn.Module):
         # al = 1/a
         # x = torch.einsum('ijkl,ij->ijkl', x,al)
 
+        #x2 = x/(torch.sum(torch.square(x),dim=(-1,-2),keepdim=True)+eps)
+        #x = self.norm1(x)
         x = self.Product1(x,x)
         a = 1/(torch.sum(torch.abs(x),dim=(-1,-2),keepdim=True)+eps)
         x = x*a
@@ -96,6 +121,8 @@ class ZernikeDecoder(nn.Module):
         # al = 1/a
         #x = torch.einsum('ijkl,ij->ijkl', x,al)
 
+        #x2 = x/(torch.sum(torch.square(x),dim=(-1,-2),keepdim=True)+eps)
+        #x = self.norm2(x)
         x = self.Product2(x,x)
         a = 1/(torch.sum(torch.abs(x),dim=(-1,-2),keepdim=True)+eps)
         x = x*a
@@ -108,6 +135,8 @@ class ZernikeDecoder(nn.Module):
         # #a = torch.where(a>1,a,1)
         # al = 1/a4
         # x = torch.einsum('ijkl,ij->ijkl', x,al)
+        #x2 = x/(torch.sum(torch.square(x),dim=(-1,-2),keepdim=True)+eps)
+        #x = self.norm3(x)
         x = self.Product3(x,x)
         a = 1/(torch.sum(torch.abs(x),dim=(-1,-2),keepdim=True)+eps)
         x = x*a
@@ -116,6 +145,8 @@ class ZernikeDecoder(nn.Module):
         # #a = torch.where(a>1,a,1)
         # al = 1/a
         # x = torch.einsum('ijkl,ij->ijkl', x,al)
+        #x2 = x/(torch.sum(torch.square(x),dim=(-1,-2),keepdim=True)+eps)
+        #x = self.norm4(x)
         x = self.Product4(x,x)
         a = 1/(torch.sum(torch.abs(x),dim=(-1,-2),keepdim=True)+eps)
         x = x*a
@@ -125,6 +156,8 @@ class ZernikeDecoder(nn.Module):
         # #a = torch.where(a>1,a,1)
         # al = 1/a
         # x = torch.einsum('ijkl,ij->ijkl', x,al)
+        #x2 = x/(torch.sum(torch.square(x),dim=(-1,-2),keepdim=True)+eps)
+        #x = self.norm5(x)
         x = self.Product5(x,x)
         # print(torch.isnan(x).any())
         # print(torch.min(x))

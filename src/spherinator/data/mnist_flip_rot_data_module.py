@@ -1,10 +1,12 @@
 import lightning.pytorch as pl
 from torch.utils.data import DataLoader, random_split
 from torchvision import transforms
-from torchvision.datasets import MNIST
+
+from .mnist_flip_rot_dataset import mnist_fliprot_dataset as MNIST
+from .spherinator_data_module import SpherinatorDataModule
 
 
-class MNISTDataModule(pl.LightningDataModule):
+class MNISTDataModule_flip_rot(pl.LightningDataModule):
     def __init__(
         self,
         data_dir: str = "./data/",
@@ -31,28 +33,31 @@ class MNISTDataModule(pl.LightningDataModule):
             transforms.Lambda(
                 lambda x: (x - x.min()) / (x.max() - x.min())
             ),  # Normalize to [0, 1]
-            transforms.RandomHorizontalFlip(p=0.5),
+            #transforms.RandomHorizontalFlip(p=0.5),
         ]
         self.transform = transforms.Compose(transformations)
 
     def prepare_data(self):
-        MNIST(self.data_dir, train=True, download=True)
-        MNIST(self.data_dir, train=False, download=True)
+        MNIST()
+        # MNIST(self.data_dir, train=False, download=True)
+        print('skip')
 
     def setup(self, stage: str):
         if stage == "fit":
-            mnist_full = MNIST(self.data_dir, train=True, transform=self.transform)
-            self.mnist_train, self.mnist_val = random_split(mnist_full, [55000, 5000])
+            self.mnist_train = MNIST('train')
+            self.mnist_val = MNIST('valid')
 
         if stage == "test":
             self.mnist_test = MNIST(
-                self.data_dir, train=False, transform=self.transform
+                'test'
             )
+
 
         if stage == "predict":
             self.mnist_predict = MNIST(
-                self.data_dir, train=False, transform=self.transform
+                'test'
             )
+
 
     def train_dataloader(self):
         return DataLoader(
@@ -72,13 +77,6 @@ class MNISTDataModule(pl.LightningDataModule):
     def test_dataloader(self):
         return DataLoader(
             self.mnist_test,
-            batch_size=self.batch_size,
-            num_workers=self.num_workers,
-        )
-
-    def predict_dataloader(self):
-        return DataLoader(
-            self.mnist_predict,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
         )

@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import torchvision.transforms.v2 as transforms
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 
 from spherinator.models.spherinator_module import SpherinatorModule
 
@@ -67,55 +67,77 @@ class GalaxyZooDataModule(SpherinatorDataModule):
         """
         if stage not in ["fit", "processing", "images", "thumbnail_images"]:
             raise ValueError(f"Stage {stage} not supported.")
-
+        self.data_full = GalaxyZooDataset(
+            # data_directory=self.data_directory,
+            # extension=self.extension,
+            # transform=self.transform_train,
+        )
         if stage == "fit" and self.data_train is None:
-            self.data_train = GalaxyZooDataset(
-                data_directory=self.data_directory,
-                extension=self.extension,
-                transform=self.transform_train,
-            )
-            self.dataloader_train = DataLoader(
+
+            self.data_train, self.data_val = random_split(self.data_full, [56578, 5000])
+
+
+    def train_dataloader(self):
+            return DataLoader(
                 self.data_train,
                 batch_size=self.batch_size,
                 shuffle=self.shuffle,
                 num_workers=self.num_workers,
             )
-        elif stage == "processing" and self.data_processing is None:
-            self.data_processing = GalaxyZooDataset(
-                data_directory=self.data_directory,
-                extension=self.extension,
-                transform=self.transform_processing,
-            )
-            self.dataloader_processing = DataLoader(
-                self.data_train,
-                batch_size=self.batch_size,
-                shuffle=False,
-                num_workers=self.num_workers,
-            )
-        elif stage == "images" and self.data_images is None:
-            self.data_images = GalaxyZooDataset(
-                data_directory=self.data_directory,
-                extension=self.extension,
-                transform=self.transform_images,
-            )
-            self.dataloader_images = DataLoader(
-                self.data_train,
-                batch_size=self.batch_size,
-                shuffle=False,
-                num_workers=self.num_workers,
-            )
-        elif stage == "thumbnail_images" and self.data_thumbnail_images is None:
-            self.data_thumbnail_images = GalaxyZooDataset(
-                data_directory=self.data_directory,
-                extension=self.extension,
-                transform=self.transform_thumbnail_images,
-            )
-            self.dataloader_thumbnail_images = DataLoader(
-                self.data_train,
-                batch_size=self.batch_size,
-                shuffle=False,
-                num_workers=self.num_workers,
-            )
+    def val_dataloader(self):
+        return DataLoader(
+            self.data_val,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+        )
+
+
+
+        # if stage == "test":
+        #     self.mnist_test = GalaxyZooDataset(
+        #         data_directory=self.data_directory,
+        #         extension=self.extension,
+        #         train=False,
+        #         transform=self.transform_train,
+        #     )
+
+
+        # elif stage == "processing" and self.data_processing is None:
+        #     self.data_processing = GalaxyZooDataset(
+        #         data_directory=self.data_directory,
+        #         extension=self.extension,
+        #         transform=self.transform_processing,
+        #     )
+        #     self.dataloader_processing = DataLoader(
+        #         self.data_train,
+        #         batch_size=self.batch_size,
+        #         shuffle=False,
+        #         num_workers=self.num_workers,
+        #     )
+        # elif stage == "images" and self.data_images is None:
+        #     self.data_images = GalaxyZooDataset(
+        #         data_directory=self.data_directory,
+        #         extension=self.extension,
+        #         transform=self.transform_images,
+        #     )
+        #     self.dataloader_images = DataLoader(
+        #         self.data_train,
+        #         batch_size=self.batch_size,
+        #         shuffle=False,
+        #         num_workers=self.num_workers,
+        #     )
+        # elif stage == "thumbnail_images" and self.data_thumbnail_images is None:
+        #     self.data_thumbnail_images = GalaxyZooDataset(
+        #         data_directory=self.data_directory,
+        #         extension=self.extension,
+        #         transform=self.transform_thumbnail_images,
+        #     )
+        #     self.dataloader_thumbnail_images = DataLoader(
+        #         self.data_train,
+        #         batch_size=self.batch_size,
+        #         shuffle=False,
+        #         num_workers=self.num_workers,
+        #     )
 
     def write_catalog(
         self, model: SpherinatorModule, catalog_file: Path, hipster_url: str, title: str
