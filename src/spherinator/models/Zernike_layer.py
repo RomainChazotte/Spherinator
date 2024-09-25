@@ -36,7 +36,7 @@ class  Non_linearity(nn.Module):
 class Lintrans3(nn.Module):
     def __init__(self, inp,out,Non_lin=False):
         super().__init__()
-        self.lin = nn.Linear(inp,out)
+        self.lin = nn.Linear(inp,out,bias=False)
         self.Non_lin_bool = Non_lin
         if Non_lin:
             self.Non_lin = Non_linearity()
