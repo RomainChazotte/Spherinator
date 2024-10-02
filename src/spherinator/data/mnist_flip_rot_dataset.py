@@ -44,7 +44,7 @@ class mnist_fliprot_dataset(SpherinatorDataset):
             transforms.Lambda(
                 lambda x: (x - x.min()) / (x.max() - x.min())
             ),  # Normalize to [0, 1]
-            #transforms.RandomHorizontalFlip(p=0.5),
+            transforms.RandomHorizontalFlip(p=0.5),
         ]
         self.transform = transforms.Compose(transformations)
 
@@ -61,25 +61,36 @@ class mnist_fliprot_dataset(SpherinatorDataset):
                 rng.shuffle(indices)
 
             split = int(np.floor(num_train * 5 / 6))
-
+            print(num_train)
+            print(split)
+            print(mode)
             if mode == "train":
                 data = {
                     "images": data["images"][indices[:split], :],
                     "labels": data["labels"][indices[:split]]
                 }
+
             elif mode == "valid":
                 data = {
                     "images": data["images"][indices[split:], :],
                     "labels": data["labels"][indices[split:]]
                 }
 
-        else:
+        elif mode =="test":
             filename = '/home/chazotrn/development/Classifier_mnist/data/stuff/mnist_fliprot_test.npz'
             data = np.load(filename)
 
         self.images = data['images'].astype(np.float32)
         self.labels = data['labels'].astype(np.int64)
         self.num_samples = len(self.labels)
+        # print(len(self.labels))
+        # import matplotlib.pyplot as plt
+        # for i in range(10):
+        #     plt.figure()
+        #     plt.imshow(np.array(self.images[i]))
+        #     plt.savefig('im{}.jpg'.format(i))
+        #     plt.close()
+
 
     def __getitem__(self, index):
         """

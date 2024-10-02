@@ -9,4 +9,4 @@ trainer:
         - Zernike mnist
         - MSE loss
         - rot and flip
-        - 2.5 k params
+        - crossentropy_loss

@@ -21,7 +21,7 @@ lr_scheduler:
   init_args:
     mode: min
     factor: 0.3
-    patience: 200
+    patience: 500
     cooldown: 0
     min_lr: 0.001
     monitor: train_loss
@@ -30,5 +30,5 @@ lr_scheduler:
 trainer:
   max_epochs: -1
   accelerator: gpu
-  devices: [0]
+  devices: [2]
   precision: 32

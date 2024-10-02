@@ -55,16 +55,16 @@ class ZernikeEncoderClassify(pl.LightningModule):
         super().__init__()
         test_dimens = False
         num_channels = 10
-        n = 8
+        n = 16
         self.norm = torch.nn.LayerNorm(10)
         self.norm1 = torch.nn.LayerNorm(10)
         # self.norm2 = torch.nn.LayerNorm(20)
         # self.norm3 = torch.nn.LayerNorm(10)
-        self.Product0 = Zernike_layer( n_max = n, n_out=4,multichanneled = 'independant',in_channels = 1 ,intermediate_channels=5, out_channels =5 ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
+        self.Product0 = Zernike_layer( n_max = n, n_out=8,multichanneled = 'independant',in_channels = 1 ,intermediate_channels=5, out_channels =5 ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
 
-        self.Product01 = Zernike_layer( n_max = 4, n_out=4,multichanneled = 'independant',in_channels = 5 ,intermediate_channels=5, out_channels =10 ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
+        self.Product01 = Zernike_layer( n_max = 8, n_out=8,multichanneled = 'independant',in_channels = 5 ,intermediate_channels=5, out_channels =10 ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
 
-        #self.Product02 = Zernike_layer( n_max = 8, n_out=4,multichanneled = 'independant',in_channels = 10 ,intermediate_channels=10, out_channels =10 ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
+        self.Product02 = Zernike_layer( n_max = 8, n_out=4,multichanneled = 'independant',in_channels = 10 ,intermediate_channels=10, out_channels =10 ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
 
         # self.Product03 = Zernike_layer( n_max = 4, n_out=4,multichanneled = 'independant',in_channels = 10 ,intermediate_channels=5, out_channels =10 ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
 
@@ -113,12 +113,16 @@ class ZernikeEncoderClassify(pl.LightningModule):
         # self.linout = nn.Linear(num_channels3,int(num_channels3/4))
         # self.linout2 = nn.Linear(int(num_channels3/4),int(num_channels3/4))
         # self.linout3 = nn.Linear(int(num_channels3/4),10)
-
-
-        size = self.Product0.calc_size(4)
+        size = self.Product0.calc_size(8)
         self.size = size
         self.Rnorm = nn.RMSNorm([size,2],elementwise_affine=False)
+
+        # size = self.Product0.calc_size(4)
+        # self.size = size
         self.Rnorm2 = nn.RMSNorm([size,2],elementwise_affine=False)
+        size = self.Product0.calc_size(4)
+        self.size = size
+        self.Rnorm02 = nn.RMSNorm([size,2],elementwise_affine=False)
         self.Rnorm3 = nn.RMSNorm([10],elementwise_affine=False)
         #self.Input_lin_0 = Multilin(10,10,size,Non_lin=True)
         # self.Input_lin_1 = Multilin(10,10,size,Non_lin=True)
@@ -149,6 +153,8 @@ class ZernikeEncoderClassify(pl.LightningModule):
         #x = self.Product01(self.Input_lin_2(x),self.Input_lin_2(x))
         x = self.Product01(x,x)
         x = self.Rnorm2(x)
+        x = self.Product02(x,x)
+        x = self.Rnorm02(x)
         # a = 1/(torch.sum(torch.abs(x2),dim=(-1,-2,-3),keepdim=True)+eps)
         # x = x2*a *10
         #x = self.Product01(self.Input_lin_2(x),self.Input_lin_2(x))

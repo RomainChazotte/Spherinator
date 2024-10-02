@@ -52,8 +52,8 @@ class LogZernike(Callback):
 
             #loss_recon = pl_module.criterion(out,rec)
             #out = pl_module.Embedding_Function.decode(out)*norm
-            rec  = torch.einsum('ij,...jk->...ik',pl_module.mask2,rec)
-            rec = pl_module.Embedding_Function.decode(rec)*norm
+            # rec  = torch.einsum('ij,...jk->...ik',pl_module.mask2,rec)
+            # rec = pl_module.Embedding_Function.decode(rec)*norm
             scaled = scaled*norm
             #print(torch.sum(out,dim=(-1,-2))[0:10])
 
@@ -89,9 +89,9 @@ class LogZernike(Callback):
             ax[0, i].imshow(((scaled)[i].cpu().detach().numpy().T),vmin=0,vmax=1)
             ax[0, i].set_title("Original"+str(np.sum(np.abs((scaled)[i].cpu().detach().numpy()))))
             ax[0, i].axis("off")
-            ax[1, i].imshow(rec[i].cpu().detach().numpy().T,vmin=0,vmax=1)
-            ax[1, i].set_title("Reconstruction"+str(np.sum(np.abs((rec)[i].cpu().detach().numpy()))))
-            ax[1, i].axis("off")
+            # ax[1, i].imshow(rec[i].cpu().detach().numpy().T,vmin=0,vmax=1)
+            # ax[1, i].set_title("Reconstruction"+str(np.sum(np.abs((rec)[i].cpu().detach().numpy()))))
+            # ax[1, i].axis("off")
             # ax[2, i].imshow(out[i].cpu().detach().numpy().T,vmin=0,vmax=1)
             # ax[2, i].set_title("Model_output"+str(np.sum(np.abs((out)[i].cpu().detach().numpy()))))
             # ax[2, i].axis("off")

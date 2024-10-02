@@ -31,7 +31,7 @@ from .zernike_encoder_classify import ZernikeEncoderClassify
 class ZernikeClassifier(SpherinatorModule):
     def __init__(
         self,
-        encoder: nn.Module = ZernikeEncoderClassify(8,0,10,device = 'cuda:0'),
+        encoder: nn.Module = ZernikeEncoderClassify(8,0,10,device = 'cuda:2'),
         #encoder: nn.Module = ConvolutionalEncoder(2),
         #encoder: nn.Module = ZernikeEncoder(32,1,10,device = 'cuda:2'),
         #decoder: nn.Module = ZernikeDecoder(32,1,10,device = 'cuda:2'),
@@ -55,7 +55,7 @@ class ZernikeClassifier(SpherinatorModule):
         #encoder = ZernikeEncoderClassify(8,0,10,device = 'cuda:2')
 
         #print(self.device)
-        device = 'cuda:0'
+        device = 'cuda:2'
         self.input_mask= self.mask().to(device)
         self.encoder = encoder
         #self.decoder = decoder
@@ -70,10 +70,10 @@ class ZernikeClassifier(SpherinatorModule):
 
         self.example_input_array = torch.randn(2, 1, self.input_size, self.input_size)
 
-        self.criterion2 = nn.CrossEntropyLoss()
-        self.criterion = nn.MSELoss()
+        self.criterion = nn.CrossEntropyLoss()
+        #self.criterion = nn.MSELoss()
         self.Embedding_Function = Zernike_embedding(32, device)
-        self.mask = self.encoder.Product0.create_mask_decrease(32,8)
+        self.mask = self.encoder.Product0.create_mask_decrease(32,16)
         self.mask2 = self.encoder.Product0.create_mask_increase(16,32)
         self.dropout = nn.Dropout(p=0.3)
 
@@ -209,6 +209,7 @@ class ZernikeClassifier(SpherinatorModule):
             x = batch[0]
             y = batch[1]
             #y = y[:,0]
+            y2 = y
         #compare = torch.ones_like(y,dtype=torch.float)
         y = F.one_hot(y).to(torch.float)
         #x = x# + torch.ones(29,29,device='cuda:3')/4
@@ -222,25 +223,78 @@ class ZernikeClassifier(SpherinatorModule):
         with torch.no_grad():
             #out = torch.max(out)
             #print(out[0])
-            out = torch.argmax(out, dim=1)#, keepdim=True)
-            #print(out[0])
-            y = torch.abs(y-1)
-            #print(y[0])
-            #out = y[out]#.mean()
-            #print(out.size())
-            size = out.size(0)
-            x = 0
-            for i in range(size):
-                #print(y[i,out[i]])
-                x += y[i,out[i]]
-            x = x/size
-            #print(x)
+            accuracy = self.accuracy(out,y2)
+            x = -(accuracy-1)
+            num_wrong = self.num_wrong(out,y2)
+            # out = torch.argmax(out, dim=1)#, keepdim=True)
+            # #print(out[0])
+            # y = torch.abs(y-1)
+            # #print(y[0])
+            # #out = y[out]#.mean()
+            # #print(out.size())
+            # size = out.size(0)
+            # x = 0
+            # for i in range(size):
+            #     #print(y[i,out[i]])
+            #     x += y[i,out[i]]
+            # x = x/size
+            # #print(x)
         self.log("validation_loss", loss, prog_bar=True)
         self.log("validation_accuracy",x, prog_bar=True)
+        self.log("num_wrong",num_wrong, prog_bar=True)
+
         #self.log("Max value avarage", (torch.max(out,dim=-1).values).mean(), prog_bar=True)
         #self.log("image_loss", self.criterion(out_pic, picture), prog_bar=True)
         self.log("learning_rate", self.optimizers().param_groups[0]["lr"])
-        return loss
+        #return loss
+
+    def test_step(self, batch, batch_idx):
+
+        #sum_in = torch.sum(torch.abs(picture),dim=(-1,-2,-3))
+        #picture = picture/sum_in
+        with torch.no_grad():
+            x = batch[0]
+            y = batch[1]
+            #y = y[:,0]
+            y2 = y
+        #compare = torch.ones_like(y,dtype=torch.float)
+        y = F.one_hot(y).to(torch.float)
+        #x = x# + torch.ones(29,29,device='cuda:3')/4
+        with torch.no_grad():
+            #picture = torch.einsum('...ij,ij->...ij',x,self.input_mask)
+            #print( torch.sum(torch.abs(picture),dim=(-1,-2),keepdim=True)[0])
+            #picture = picture/norm
+            out,_ = self.forward(x)
+
+            loss = (self.criterion( out,y))
+        with torch.no_grad():
+            #out = torch.max(out)
+            #print(out[0])
+            accuracy = self.accuracy(out,y2)
+            x = -(accuracy-1)
+            num_wrong = self.num_wrong(out,y2)
+            #num_right = # out = torch.argmax(out, dim=1)#, keepdim=True)
+            # #print(out[0])
+            # y = torch.abs(y-1)
+            # #print(y[0])
+            # #out = y[out]#.mean()
+            # #print(out.size())
+            # size = out.size(0)
+            # x = 0
+            # for i in range(size):
+            #     #print(y[i,out[i]])
+            #     x += y[i,out[i]]
+            # x = x/size
+            # #print(x)
+        self.log("test_loss", loss, prog_bar=True)
+        self.log("test_accuracy",x, prog_bar=True)
+        self.log("num_wrong",num_wrong, prog_bar=True)
+        #self.log("num_right",num_right, prog_bar=True)
+
+        #self.log("Max value avarage", (torch.max(out,dim=-1).values).mean(), prog_bar=True)
+        #self.log("image_loss", self.criterion(out_pic, picture), prog_bar=True)
+        #self.log("learning_rate", self.optimizers().param_groups[0]["lr"])
+        #return loss
 
     def configure_optimizers(self):
         """Default Adam optimizer if missing from the configuration file."""
@@ -271,6 +325,25 @@ class ZernikeClassifier(SpherinatorModule):
         y =  np.where(y<1,1,0)
         return torch.tensor(y)
 
+    def accuracy(self,predictions, targets):
+        if predictions.shape[1] > 1:
+            predictions = predictions.argmax(dim=1)
+        else:
+            predictions = (predictions > 0.)
+
+        predictions = predictions.to(dtype=targets.dtype)
+        accuracy = float((targets == predictions).sum()) / predictions.numel()
+        return accuracy
+
+    def num_wrong(self,predictions, targets):
+        if predictions.shape[1] > 1:
+            predictions = predictions.argmax(dim=1)
+        else:
+            predictions = (predictions > 0.)
+
+        predictions = predictions.to(dtype=targets.dtype)
+        accuracy = float((targets == predictions).sum()) #/ predictions.numel()
+        return (predictions.numel() -accuracy)#, accuracy
 class Zernike_embedding(nn.Module):
     def __init__(self, n_max = 30 , device = 'cuda:2', numerical_expand = 4 ):
         super().__init__()
@@ -401,4 +474,5 @@ class Zernike_embedding(nn.Module):
 
     def decode(self,input):
         out = torch.einsum('ijkl,...ij->...kl',self.Zernike_matrix,input)
+        return out
         return out

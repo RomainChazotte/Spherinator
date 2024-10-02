@@ -38,7 +38,7 @@ class MNISTDataModule_flip_rot(pl.LightningDataModule):
         self.transform = transforms.Compose(transformations)
 
     def prepare_data(self):
-        MNIST()
+        # MNIST()
         # MNIST(self.data_dir, train=False, download=True)
         print('skip')
 
@@ -53,10 +53,10 @@ class MNISTDataModule_flip_rot(pl.LightningDataModule):
             )
 
 
-        if stage == "predict":
-            self.mnist_predict = MNIST(
-                'test'
-            )
+        # if stage == "predict":
+        #     self.mnist_predict = MNIST(
+        #         'test'
+        #     )
 
 
     def train_dataloader(self):
