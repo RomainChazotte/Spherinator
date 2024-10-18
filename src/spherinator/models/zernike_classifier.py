@@ -26,6 +26,7 @@ from .spherinator_module import SpherinatorModule
 from .zernike_decoder import ZernikeDecoder
 from .zernike_encoder import ZernikeEncoder
 from .zernike_encoder_classify import ZernikeEncoderClassify
+from .create_multiscale_filters import Create_multiscale_filters
 
 
 class ZernikeClassifier(SpherinatorModule):
@@ -58,6 +59,7 @@ class ZernikeClassifier(SpherinatorModule):
         device = 'cuda:2'
         self.input_mask= self.mask().to(device)
         self.encoder = encoder
+        self.encode_1 = ZernikeEncoderClassify(4,0,10,device = device,local=True)
         #self.decoder = decoder
         self.image_size = image_size
         self.input_size = input_size
@@ -70,12 +72,13 @@ class ZernikeClassifier(SpherinatorModule):
 
         self.example_input_array = torch.randn(2, 1, self.input_size, self.input_size)
 
-        self.criterion = nn.CrossEntropyLoss()
-        #self.criterion = nn.MSELoss()
-        self.Embedding_Function = Zernike_embedding(32, device)
-        self.mask = self.encoder.Product0.create_mask_decrease(32,16)
-        self.mask2 = self.encoder.Product0.create_mask_increase(16,32)
+        #self.criterion = nn.CrossEntropyLoss()
+        self.criterion = nn.MSELoss()
+        self.Embedding_Function = Zernike_embedding(8, device)
+        #self.mask = self.encoder.Product0.create_mask_decrease(32,16)
+        #self.mask2 = self.encoder.Product0.create_mask_increase(16,32)
         self.dropout = nn.Dropout(p=0.3)
+        self.Multiscale_filters = Create_multiscale_filters(device=device)
 
 
     def get_input_size(self):
@@ -91,22 +94,40 @@ class ZernikeClassifier(SpherinatorModule):
     def forward(self, x):
         #sum_in = torch.sum(torch.abs(x),dim=(-1,-2,-3))
 
-        #eps = np.finfo(float).eps
-        with torch.no_grad():
-            x = self.Embedding_Function.embed(x)
-            x  = x[:,:,self.mask,:]
 
+        with torch.no_grad():
+            x = self.Multiscale_filters.embed(x)
+        #print(x.size())
+        x = self.encode_1(x)
+        #print(x.size())
+        x = torch.transpose(x,-1,-3)
+
+
+        #x = torch.transpose(x,-2,-4)
+        #print(x.size())
+        #eps = np.finfo(float).eps
+        # with torch.no_grad():
+        #     x = self.Embedding_Function.embed(x)
+        #     x  = x[:,:,self.mask,:]
+        #print(x.size())
+
+        x = self.Embedding_Function.embed(x)
+        #print(x.size())
+
+        #print(x.size())
         z = self.encode(x)
+        #print(z.size())
         #norm = torch.sum(torch.abs(z),dim=1,keepdim=True)+eps
         #print(norm)
         #z = z/norm
         #print(z)
-        #z = F.softmax(z,dim=1)
-        z = F.sigmoid(z)
+        z = F.softmax(z,dim=-1)
+        #z = F.sigmoid(z)
         #norm = torch.sum(torch.abs(z),dim=1,keepdim=True)+eps
         #z = z/norm
         #z = F.log_softmax(z, dim=1)
         #z = self.calculate_normalized_outputs(z)
+        #print(z.size())
         return z,x
 
 
@@ -129,7 +150,14 @@ class ZernikeClassifier(SpherinatorModule):
             # print(torch.max(torch.einsum('...ij,ij->...',x,tens)/(magnitude)))
             #x = x + torch.randn(29,29,device='cuda:3')/2
             #x = x * random.random()
-            picture = torch.einsum('...ij,ij->...ij',x,self.input_mask)
+
+
+
+
+            #picture = torch.einsum('...ij,ij->...ij',x,self.input_mask)
+
+
+            picture = x
             #picture = picture/torch.sum(torch.abs(picture),dim=(-1,-2),keepdim=True)
             #print(y)
         #picture = self.dropout(picture)
@@ -160,6 +188,7 @@ class ZernikeClassifier(SpherinatorModule):
         # print(out[0])
         # print(self.calculate_normalized_outputs(out)[0])
         #loss = torch.sqrt(self.criterion( out,y))
+        #print(out[0])
         loss = (self.criterion( out,y))
          #- (torch.min(out,dim=-1).values).mean()/10
         #loss = 50* self.criterion( out,y) + self.criterion2(out,y)
@@ -218,6 +247,8 @@ class ZernikeClassifier(SpherinatorModule):
             #print( torch.sum(torch.abs(picture),dim=(-1,-2),keepdim=True)[0])
             #picture = picture/norm
             out,_ = self.forward(x)
+            print(out[0])
+            #print(out[1])
 
             loss = (self.criterion( out,y))
         with torch.no_grad():
@@ -241,11 +272,11 @@ class ZernikeClassifier(SpherinatorModule):
             # #print(x)
         self.log("validation_loss", loss, prog_bar=True)
         self.log("validation_accuracy",x, prog_bar=True)
-        self.log("num_wrong",num_wrong, prog_bar=True)
+        #self.log("num_wrong",num_wrong, prog_bar=True)
 
         #self.log("Max value avarage", (torch.max(out,dim=-1).values).mean(), prog_bar=True)
         #self.log("image_loss", self.criterion(out_pic, picture), prog_bar=True)
-        self.log("learning_rate", self.optimizers().param_groups[0]["lr"])
+        self.log("learning_rate", self.optimizers().param_groups[0]["lr"], prog_bar=True)
         #return loss
 
     def test_step(self, batch, batch_idx):
@@ -345,14 +376,14 @@ class ZernikeClassifier(SpherinatorModule):
         accuracy = float((targets == predictions).sum()) #/ predictions.numel()
         return (predictions.numel() -accuracy)#, accuracy
 class Zernike_embedding(nn.Module):
-    def __init__(self, n_max = 30 , device = 'cuda:2', numerical_expand = 4 ):
+    def __init__(self, n_max = 30 , device = 'cuda:2', numerical_expand = 16 ):
         super().__init__()
         self.num = numerical_expand
-        if os.path.isfile('Zernike_decode_encode_size28_{}'.format(n_max)) :
-            self.Zernike_matrix = torch.load('Zernike_decode_encode_size28_{}'.format(n_max))
+        if os.path.isfile('Zernike_decode_encode_size22_{}'.format(n_max)) :
+            self.Zernike_matrix = torch.load('Zernike_decode_encode_size22_{}'.format(n_max))
         else:
             self.Zernike_matrix = self.create_filter(n_max)
-            torch.save(self.Zernike_matrix,'Zernike_decode_encode_size28_{}'.format(n_max))
+            torch.save(self.Zernike_matrix,'Zernike_decode_encode_size22_{}'.format(n_max))
         #size = self.calc_size(n_max)
 
 
@@ -424,7 +455,7 @@ class Zernike_embedding(nn.Module):
 
         grid_extend = 1
         #grid_resolution = 680
-        z = x = np.linspace(-grid_extend, grid_extend, int(28*self.num))
+        z = x = np.linspace(-grid_extend, grid_extend, int(22*self.num))
         z, x = np.meshgrid(z, x)
 
         #print(Zernike_functions)
@@ -458,7 +489,7 @@ class Zernike_embedding(nn.Module):
         out =torch.tensor( block_reduce(out,(1,1, self.num, self.num),func=np.sum),dtype=torch.float)
 
 
-        z = x = np.linspace(-grid_extend, grid_extend, int(28))
+        z = x = np.linspace(-grid_extend, grid_extend, int(22))
         z, x = np.meshgrid(z, x)
         out_mask = torch.tensor( self.mask(x,z))
         out= torch.einsum('ijkl,kl->ijkl',out,out_mask)
@@ -474,5 +505,4 @@ class Zernike_embedding(nn.Module):
 
     def decode(self,input):
         out = torch.einsum('ijkl,...ij->...kl',self.Zernike_matrix,input)
-        return out
         return out

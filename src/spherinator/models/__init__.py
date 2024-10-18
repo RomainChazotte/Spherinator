@@ -29,6 +29,7 @@ from .zernike_decoder import ZernikeDecoder
 from .zernike_encoder import ZernikeEncoder
 from .zernike_encoder_classify import ZernikeEncoderClassify
 from .Zernike_layer import Lintrans3, Multilin, Zernike_layer
+from .create_multiscale_filters import Create_multiscale_filters
 
 __all__ = [
     "ZernikeDecoder",
@@ -47,5 +48,6 @@ __all__ = [
     "SpherinatorModule",
     "Zernike_layer",
     "Multilin",
-    "Lintrans3"
+    "Lintrans3",
+    "Create_multiscale_filters"
 ]
