@@ -23,15 +23,13 @@ from torch.optim import Adam
 from .convolutional_encoder import ConvolutionalEncoder
 #import lightning.pytorch as pl
 from .spherinator_module import SpherinatorModule
-from .zernike_decoder import ZernikeDecoder
-from .zernike_encoder import ZernikeEncoder
 from .zernike_encoder_classify import ZernikeEncoderClassify
 
 
 class ZernikeClassifier(SpherinatorModule):
     def __init__(
         self,
-        encoder: nn.Module = ZernikeEncoderClassify(8,0,10,device = 'cuda:2'),
+        encoder: nn.Module = ZernikeEncoderClassify(8,0,10,device = 'cuda:3'),
         #encoder: nn.Module = ConvolutionalEncoder(2),
         #encoder: nn.Module = ZernikeEncoder(32,1,10,device = 'cuda:2'),
         #decoder: nn.Module = ZernikeDecoder(32,1,10,device = 'cuda:2'),
@@ -55,7 +53,7 @@ class ZernikeClassifier(SpherinatorModule):
         #encoder = ZernikeEncoderClassify(8,0,10,device = 'cuda:2')
 
         #print(self.device)
-        device = 'cuda:2'
+        device = 'cuda:3'
         self.input_mask= self.mask().to(device)
         self.encoder = encoder
         #self.decoder = decoder
@@ -70,11 +68,9 @@ class ZernikeClassifier(SpherinatorModule):
 
         self.example_input_array = torch.randn(2, 1, self.input_size, self.input_size)
 
-        self.criterion = nn.CrossEntropyLoss()
-        #self.criterion = nn.MSELoss()
-        self.Embedding_Function = Zernike_embedding(32, device)
-        self.mask = self.encoder.Product0.create_mask_decrease(32,16)
-        self.mask2 = self.encoder.Product0.create_mask_increase(16,32)
+        #self.criterion = nn.CrossEntropyLoss()
+        self.criterion = nn.MSELoss()
+        self.Embedding_Function = Fourier_embedding(16, device)
         self.dropout = nn.Dropout(p=0.3)
 
 
@@ -94,15 +90,14 @@ class ZernikeClassifier(SpherinatorModule):
         #eps = np.finfo(float).eps
         with torch.no_grad():
             x = self.Embedding_Function.embed(x)
-            x  = x[:,:,self.mask,:]
 
         z = self.encode(x)
         #norm = torch.sum(torch.abs(z),dim=1,keepdim=True)+eps
         #print(norm)
         #z = z/norm
         #print(z)
-        #z = F.softmax(z,dim=1)
-        z = F.sigmoid(z)
+        z = F.softmax(z,dim=1)
+        #z = F.sigmoid(z)
         #norm = torch.sum(torch.abs(z),dim=1,keepdim=True)+eps
         #z = z/norm
         #z = F.log_softmax(z, dim=1)
@@ -241,8 +236,6 @@ class ZernikeClassifier(SpherinatorModule):
             # #print(x)
         self.log("validation_loss", loss, prog_bar=True)
         self.log("validation_accuracy",x, prog_bar=True)
-        self.log("num_wrong",num_wrong, prog_bar=True)
-
         #self.log("Max value avarage", (torch.max(out,dim=-1).values).mean(), prog_bar=True)
         #self.log("image_loss", self.criterion(out_pic, picture), prog_bar=True)
         self.log("learning_rate", self.optimizers().param_groups[0]["lr"])
@@ -344,135 +337,76 @@ class ZernikeClassifier(SpherinatorModule):
         predictions = predictions.to(dtype=targets.dtype)
         accuracy = float((targets == predictions).sum()) #/ predictions.numel()
         return (predictions.numel() -accuracy)#, accuracy
-class Zernike_embedding(nn.Module):
+class Fourier_embedding(nn.Module):
     def __init__(self, n_max = 30 , device = 'cuda:2', numerical_expand = 4 ):
         super().__init__()
         self.num = numerical_expand
-        if os.path.isfile('Zernike_decode_encode_size28_{}'.format(n_max)) :
-            self.Zernike_matrix = torch.load('Zernike_decode_encode_size28_{}'.format(n_max))
+        if os.path.isfile('Fourier_decode_encode_size28_{}'.format(n_max)) :
+            self.Fourier_matrix = torch.load('Fourier_decode_encode_size28_{}'.format(n_max))
         else:
-            self.Zernike_matrix = self.create_filter(n_max)
-            torch.save(self.Zernike_matrix,'Zernike_decode_encode_size28_{}'.format(n_max))
+            self.Fourier_matrix = self.create_filter(n_max+1)
+            torch.save(self.Fourier_matrix,'Fourier_decode_encode_size28_{}'.format(n_max))
         #size = self.calc_size(n_max)
 
 
-        #self.Zernike_matrix = self.create_filter(n_max)
-        self.Zernike_matrix = self.Zernike_matrix.to(device)#*16
+        #self.Fourier_matrix = self.create_filter(n_max)
+        self.Fourier_matrix = self.Fourier_matrix.to(device)#*16
+        self.Fourier_matrix = torch.transpose(self.Fourier_matrix, 1,2)
         #self.norm_matrix = np.array(self.norm_matrix)
-        #self.Zernike_matrix= torch.nn.parameter.Parameter(self.Zernike_matrix,requires_grad=False)
+        #self.Fourier_matrix= torch.nn.parameter.Parameter(self.Fourier_matrix,requires_grad=False)
         #self.device = 'cuda:2'
-    def calc_size(self,n_max):
-        n_max_calc = n_max+1
-        lengh = int(((n_max_calc+1)*n_max_calc/2)/2+math.ceil(n_max_calc/4))
-        return lengh
-
-    def M_embedding_generator(self,n_max):
-        n_max_calc = n_max+1
-        lengh = int(((n_max_calc+1)*n_max_calc/2)/2+math.ceil(n_max_calc/4))
-        Basis = np.zeros(lengh)
-        for m1 in range(0, n_max+1):
-            m1_lengh = lengh - int(((n_max_calc-m1+1)*(n_max_calc-m1)/2)/2+math.ceil((n_max_calc-m1)/4))
-            count=0
-            for n1 in range(m1,n_max+1,2):
-                Basis[m1_lengh+count] = m1
-                count+=1
-        return Basis
-
-
-    def Radial_function(self,n,m, n_max):
-        faktor = []
-        scaling = []
-        for i in range(n_max+n_max+1):
-            scaling.append(1/((2*n_max-i)**2+2))
-
-        for i in range(n_max-n):
-            faktor.append(0)
-
-        for k in range(int((n-m)/2+1)):
-            faktor.append((-1)**k * math.factorial(n-k) /(math.factorial(k) * math.factorial(int((n+m)/2-k))* math.factorial(int((n-m)/2-k)))   )
-            if k != int((n-m)/2):
-                faktor.append(0)
-            #exp.append(n-2*k)
-
-        for i in range(m):
-            faktor.append(0)
-        scale = convolve(faktor,faktor)
-        scale = np.einsum('i,i', scaling,scale)
-
-        faktor = np.array(faktor/scale)
-        #faktor = np.array(faktor)
-        return np.flip(faktor)
-
-    def Zernicke_embedding_generator(self,n_max):
-        n_max_calc = n_max+1
-        lengh = int(((n_max_calc+1)*n_max_calc/2)/2+math.ceil(n_max_calc/4))
-        Basis = np.zeros((lengh,n_max+1))
-        for m1 in range(0, n_max+1):
-            m1_lengh = lengh - int(((n_max_calc-m1+1)*(n_max_calc-m1)/2)/2+math.ceil((n_max_calc-m1)/4))
-            count=0
-            for n1 in range(m1,n_max+1,2):
-                Basis[m1_lengh+count,:] = self.Radial_function(n1,m1,n_max)
-                count+=1
-        return Basis
-    def mask(self,x,z):
-        y = (x**2+z**2)
-        return np.where(y<1,1,0)
 
 
     def create_filter(self,n_max):
-        Zernike_functions = self.Zernicke_embedding_generator(n_max)
-
         grid_extend = 1
         #grid_resolution = 680
         z = x = np.linspace(-grid_extend, grid_extend, int(28*self.num))
         z, x = np.meshgrid(z, x)
 
-        #print(Zernike_functions)
-        # Use epsilon to avoid division by zero during angle calculations
-        functions = []
-        for i in range(len(Zernike_functions)):
-
-            functions.append(numpy.polynomial.polynomial.Polynomial(Zernike_functions[i]))
 
         eps = np.finfo(float).eps
-        out = []
-        M = self.M_embedding_generator(n_max)
-        for i in range(len(Zernike_functions)):
-            out.append([functions[i](np.sqrt((x ** 2 + z ** 2)))*np.cos(M[i]*np.arctan2(x , (z ))),functions[i](np.sqrt((x ** 2 + z ** 2)))*np.sin(M[i]*np.arctan2(x ,(z  )))])
-        #print(out[0])
-        # Add restriction to r<1
-        #out_mask = self.mask(x,z)
-        #out = torch.tensor(np.array(out*out_mask),dtype=torch.float)#, device =  'cuda:2')
+        out = np.empty((n_max,n_max,2,2,int(28*self.num),int(28*self.num)))
+        for i in range(n_max):
+            for j in range(n_max):
+                out[i,j] = [[np.cos(i*x)*np.cos(j*z),np.cos(i*x)*np.sin(j*z)],[np.sin(i*x)*np.cos(j*z),np.sin(i*x)*np.sin(j*z)]]
 
-        # norm = []
-        # for i in range(len(Zernike_functions)):
-        #     norm.append([functions[i](np.sqrt((x ** 2 + z ** 2)))*np.cos(M[i]*np.arctan2(x , (z )))+eps,functions[i](np.sqrt((x ** 2 + z ** 2)))*np.sin(M[i]*np.arctan2(x ,(z  )))+eps])
-
-        # norm = torch.tensor(np.array(norm*out_mask),dtype=torch.float)
-
-        # norm = torch.sqrt((torch.sum((norm)**2,dim= (-1,-2),keepdim = True)))*self.num
-
-
-        # out = out/norm
         out = np.array(out)
-        out =torch.tensor( block_reduce(out,(1,1, self.num, self.num),func=np.sum),dtype=torch.float)
+        out =torch.tensor( block_reduce(out,(1,1,1,1, self.num, self.num),func=np.sum),dtype=torch.float)
 
 
-        z = x = np.linspace(-grid_extend, grid_extend, int(28))
-        z, x = np.meshgrid(z, x)
-        out_mask = torch.tensor( self.mask(x,z))
-        out= torch.einsum('ijkl,kl->ijkl',out,out_mask)
 
         norm = torch.sqrt((torch.sum((out)**2,dim= (-1,-2),keepdim = True)))+eps
         out = out/norm
         return out#*self.num
 
     def embed(self,input):
+        #print(self.Fourier_matrix.size())
 
-        out = torch.einsum('ijkl,...kl->...ij',self.Zernike_matrix,input)
+        out = torch.einsum('abijkl,...kl->...abij',self.Fourier_matrix,input)
         return out
 
     def decode(self,input):
-        out = torch.einsum('ijkl,...ij->...kl',self.Zernike_matrix,input)
+        out = torch.einsum('abijkl,...abij->...kl',self.Fourier_matrix,input)
         return out
+
+
+
+
+
+
+
+
+
+class Zernike_embedding(nn.Module):
+    def __init__(self, n_max = 30 , device = 'cuda:2', numerical_expand = 4 ):
+        super().__init__()
+        print('empty class')
+
+    def embed(self,input):
+
+        out = 1
+        return out
+
+    def decode(self,input):
+        out = 1
         return out

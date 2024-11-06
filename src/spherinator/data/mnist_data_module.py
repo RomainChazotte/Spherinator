@@ -31,7 +31,7 @@ class MNISTDataModule(pl.LightningDataModule):
             transforms.Lambda(
                 lambda x: (x - x.min()) / (x.max() - x.min())
             ),  # Normalize to [0, 1]
-            transforms.RandomHorizontalFlip(p=0.5),
+            #transforms.RandomHorizontalFlip(p=0.5),
         ]
         self.transform = transforms.Compose(transformations)
 

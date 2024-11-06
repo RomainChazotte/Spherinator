@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .Zernike_layer import Lintrans3, Multilin, Zernike_layer
+from .Zernike_layer import Lintrans3, Multilin, Fourier_layer
 
 
 class  Non_linearity(nn.Module):
@@ -56,71 +56,23 @@ class ZernikeEncoderClassify(pl.LightningModule):
         test_dimens = False
         num_channels = 10
         n = 16
-        self.norm = torch.nn.LayerNorm(10)
+        self.norm = torch.nn.LayerNorm(17)
         self.norm1 = torch.nn.LayerNorm(10)
         # self.norm2 = torch.nn.LayerNorm(20)
         # self.norm3 = torch.nn.LayerNorm(10)
-        self.Product0 = Zernike_layer( n_max = n, n_out=8,multichanneled = 'independant',in_channels = 1 ,intermediate_channels=5, out_channels =5 ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
+        self.Product0 = Fourier_layer( n_max = n, n_out=16,multichanneled = 'independant',in_channels = 1 ,intermediate_channels=5, out_channels =5 ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
 
-        self.Product01 = Zernike_layer( n_max = 8, n_out=8,multichanneled = 'independant',in_channels = 5 ,intermediate_channels=5, out_channels =10 ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
+        self.Product01 = Fourier_layer( n_max = 16, n_out=16,multichanneled = 'independant',in_channels = 5 ,intermediate_channels=5, out_channels =10 ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
 
-        self.Product02 = Zernike_layer( n_max = 8, n_out=4,multichanneled = 'independant',in_channels = 10 ,intermediate_channels=10, out_channels =10 ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
+        self.Product02 = Fourier_layer( n_max = 16, n_out=16 ,multichanneled = 'independant',in_channels = 10 ,intermediate_channels=10, out_channels =10 ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
 
-        # self.Product03 = Zernike_layer( n_max = 4, n_out=4,multichanneled = 'independant',in_channels = 10 ,intermediate_channels=5, out_channels =10 ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
-
-        # self.Product04 = Zernike_layer( n_max = 4, n_out=4,multichanneled = 'independant',in_channels = 10 ,intermediate_channels=5, out_channels =10 ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
-
-        # self.Product001 = Zernike_layer( n_max = n, n_out=n,multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=num_channels, out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
-
-        # self.Product002 = Zernike_layer( n_max = n, n_out=n,multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=num_channels, out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
-
-        # # self.Product0001 = Zernike_layer( n_max = n, n_out=n,multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
-
-        # # self.Product0002 = Zernike_layer( n_max = n, n_out=n,multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
-
-        # num_channels2 = 30
-        # self.Product1 = Zernike_layer( n_max = n, n_out=n,multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels2), out_channels =num_channels2 ,fast_test_dimensionality=test_dimens, device = device)#, normalize=True)
-        # #self.Input1 =  torch.nn.parameter.Parameter(Init_zero(3,n_in))
-        # num_channels3 = 30
-        # self.Product2 = Zernike_layer( n_max = n, n_out=0,multichanneled = 'independant',in_channels = num_channels2 ,intermediate_channels=int(num_channels2), out_channels =num_channels3 ,fast_test_dimensionality=test_dimens, device = device)
-        # #self.Input2 =  torch.nn.parameter.Parameter(Init_zero(num_channels,n_in))
-
-
-        # self.Product3 = Zernike_layer( n_max = 16, n_out=8, multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)
-        # #self.Input3 =  torch.nn.parameter.Parameter(Init_zero(num_channels,n_in))
-        # self.Product4 = Zernike_layer( n_max = 8, n_out=4, multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)
-
-
-        # self.Product5 = Zernike_layer( n_max = 4, n_out=2, multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)
-
-        # self.Product50 = Zernike_layer( n_max = 2, n_out=1, multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)
-
-        # self.Product_classifier = Zernike_layer( n_max = 1, n_out=0, multichanneled = 'independant',in_channels = num_channels ,intermediate_channels=int(num_channels/2), out_channels =num_channels ,fast_test_dimensionality=test_dimens, device = device)
-
-        # size = self.Product5.calc_size(0)
-        # self.Lin_2_classifier = Multilin(int(num_channels3/4),10,size,Non_lin=True)
-        # self.Lin_1 = Multilin(num_channels3,int(num_channels3/4),size,Non_lin=True)
-        # self.Lin_2 = Multilin(int(num_channels3/4),int(num_channels3/4),size,Non_lin=True)
-
-        # self.ugly_lin_1 = nn.Linear(size,size)
-        # self.ugly_lin_2 = nn.Linear(size,1)
-        # self.ugly_lin_11 = nn.Linear(size,size)
-        # self.ugly_lin_21 = nn.Linear(size,1)
-
-        #size = self.Product2.calc_size(n_output)
-        # self.drop = torch.nn.Dropout1d(p=0.5)
-        # #self.mask = self.Product0.create_mask_decrease(32,16)
-        # self.linout = nn.Linear(num_channels3,int(num_channels3/4))
-        # self.linout2 = nn.Linear(int(num_channels3/4),int(num_channels3/4))
-        # self.linout3 = nn.Linear(int(num_channels3/4),10)
-        size = self.Product0.calc_size(8)
+        size=17
         self.size = size
         self.Rnorm = nn.RMSNorm([size,2],elementwise_affine=False)
 
         # size = self.Product0.calc_size(4)
         # self.size = size
         self.Rnorm2 = nn.RMSNorm([size,2],elementwise_affine=False)
-        size = self.Product0.calc_size(4)
         self.size = size
         self.Rnorm02 = nn.RMSNorm([size,2],elementwise_affine=False)
         self.Rnorm3 = nn.RMSNorm([10],elementwise_affine=False)
@@ -133,7 +85,7 @@ class ZernikeEncoderClassify(pl.LightningModule):
 
         # self.linout = Multilin_dim2(size,size,10,Non_lin=False)
         # self.linout2 = Multilin_dim2(size,1,10,Non_lin=False)
-        self.linout3 = nn.Linear(10,10, bias=False)
+        self.linout3 = nn.Linear(17,10, bias=False)
         self.linout4 = nn.Linear(10,10, bias=False)
         #self.linout5 = nn.Linear(20,10)
         self.dropout = nn.Dropout(p=0.2)
@@ -195,6 +147,7 @@ class ZernikeEncoderClassify(pl.LightningModule):
         x = F.relu(self.linout2(x)).squeeze()
 
 
+        x = torch.sum(torch.square(x), dim=-1)
         x = self.norm(x)
         #x = self.dropout(x)
         x = F.relu(self.linout3(x))

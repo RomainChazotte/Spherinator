@@ -25,14 +25,10 @@ from .rotational_variational_autoencoder_power import \
     RotationalVariationalAutoencoderPower
 from .spherinator_module import SpherinatorModule
 from .zernike_classifier import ZernikeClassifier
-from .zernike_decoder import ZernikeDecoder
-from .zernike_encoder import ZernikeEncoder
 from .zernike_encoder_classify import ZernikeEncoderClassify
-from .Zernike_layer import Lintrans3, Multilin, Zernike_layer
+from .Zernike_layer import Lintrans3, Multilin, Fourier_layer
 
 __all__ = [
-    "ZernikeDecoder",
-    "ZernikeEncoder",
     "ZernikeClassifier",
     "ZernikeEncoderClassify",
     "ConvolutionalDecoder",
@@ -45,7 +41,7 @@ __all__ = [
     "Rotational2VariationalAutoencoderPower",
     "RotationalAutoencoder",
     "SpherinatorModule",
-    "Zernike_layer",
+    "Fourier_layer",
     "Multilin",
     "Lintrans3"
 ]
