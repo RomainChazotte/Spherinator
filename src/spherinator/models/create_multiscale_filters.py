@@ -15,35 +15,45 @@ from numpy import convolve
 from skimage.measure import block_reduce
 
 
-
 class Create_multiscale_filters(nn.Module):
-    def __init__(self, n_max = 4 , device = 'cpu', numerical_expand = 16, size=28, filtersize=7 ):
+    def __init__(self, n_max = 8 , device = 'cpu', numerical_expand = 16, size=28, filtersize=7, spacing = 3 ):
         super().__init__()
         self.num = numerical_expand
+        #angles = self.find_angles(5)
+        #print(angles/np.pi)
 
-        if os.path.isfile('Zernike_multi_size{}_filter{}_nmax{}'.format(size,filtersize,n_max)) :
-            self.Zernike_matrix = torch.load('Zernike_multi_size{}_filter{}_nmax{}'.format(size,filtersize,n_max))
-        else:
-            self.Zernike_matrix = self.create_macro_filter(n_max,size,filtersize)
-            torch.save(self.Zernike_matrix,'Zernike_multi_size{}_filter{}_nmax{}'.format(size,filtersize,n_max))
+        self.Zernike_matrix = self.create_macro_filter_pad(n_max,size,filtersize,spacing)
+
+        # if os.path.isfile('Zernike_multi_size{}_filter{}_nmax{}_spacing{}_other_rot'.format(size,filtersize,n_max,spacing)) :
+        #     self.Zernike_matrix = torch.load('Zernike_multi_size{}_filter{}_nmax{}_spacing{}_other_rot'.format(size,filtersize,n_max,spacing))
+        # else:
+        #     self.Zernike_matrix = self.create_macro_filter(n_max,size,filtersize,spacing)
+        #     torch.save(self.Zernike_matrix,'Zernike_multi_size{}_filter{}_nmax{}_spacing{}_other_rot'.format(size,filtersize,n_max,spacing))
+
+
         #size = self.calc_size(n_max)
+        # print('hi_start')
+        # print(self.create_filter(5,3,0.5*np.pi))
+        # print('hi')
+        # print(self.create_filter(5,3,0))
+        # print('hi_stop')
 
 
         #self.Zernike_matrix = self.create_filter(n_max)
+
         self.Zernike_matrix = self.Zernike_matrix.to(device)#*16
         #self.norm_matrix = np.array(self.norm_matrix)
         #self.Zernike_matrix= torch.nn.parameter.Parameter(self.Zernike_matrix,requires_grad=False)
         #self.device = 'cuda:2'
-    def calc_size(self,n_max):
-        n_max_calc = n_max+1
-        lengh = int(((n_max_calc+1)*n_max_calc/2)/2+math.ceil(n_max_calc/4))
-        return lengh
 
     def find_angles(self,size):
-
+        eps = np.finfo(float).eps
         z = x = np.linspace(-1, 1, size)
+        #print(np.meshgrid(z, x))
         z, x = np.meshgrid(z, x)
-        angles = np.arctan2(x ,(z  ))
+        angles = np.arctan2(x  ,(z))#+ np.pi
+        #print(angles)
+        #donkey
         return angles
 
     def M_embedding_generator(self,n_max):
@@ -119,22 +129,8 @@ class Create_multiscale_filters(nn.Module):
         out = []
         M = self.M_embedding_generator(n_max)
         for i in range(len(Zernike_functions)):
-            out.append([functions[i](np.sqrt((x ** 2 + z ** 2)))*np.cos(M[i]*(np.arctan2(x , (z ))+angle)),functions[i](np.sqrt((x ** 2 + z ** 2)))*np.sin(M[i]*(np.arctan2(x ,(z  ))+angle))])
-        #print(out[0])
-        # Add restriction to r<1
-        #out_mask = self.mask(x,z)
-        #out = torch.tensor(np.array(out*out_mask),dtype=torch.float)#, device =  'cuda:2')
+            out.append([functions[i](np.sqrt((x ** 2 + z ** 2)))*np.cos(M[i]*(np.arctan2(x , (z ))-angle)),functions[i](np.sqrt((x ** 2 + z ** 2)))*np.sin(M[i]*(np.arctan2(x ,(z  ))-angle))])
 
-        # norm = []
-        # for i in range(len(Zernike_functions)):
-        #     norm.append([functions[i](np.sqrt((x ** 2 + z ** 2)))*np.cos(M[i]*np.arctan2(x , (z )))+eps,functions[i](np.sqrt((x ** 2 + z ** 2)))*np.sin(M[i]*np.arctan2(x ,(z  )))+eps])
-
-        # norm = torch.tensor(np.array(norm*out_mask),dtype=torch.float)
-
-        # norm = torch.sqrt((torch.sum((norm)**2,dim= (-1,-2),keepdim = True)))*self.num
-
-
-        # out = out/norm
         out = np.array(out)
         out =torch.tensor( block_reduce(out,(1,1, self.num, self.num),func=np.sum),dtype=torch.float)
 
@@ -143,6 +139,7 @@ class Create_multiscale_filters(nn.Module):
         z, x = np.meshgrid(z, x)
         out_mask = torch.tensor( self.mask(x,z))
         out= torch.einsum('ijkl,kl->ijkl',out,out_mask)
+        out = torch.tensor(np.where(np.abs(out)<1e-6,0.,out))
 
         norm = torch.sqrt((torch.sum((out)**2,dim= (-1,-2),keepdim = True)))+eps
         out = out/norm
@@ -155,16 +152,63 @@ class Create_multiscale_filters(nn.Module):
         lengh = int(((n_max_calc+1)*n_max_calc/2)/2+math.ceil(n_max_calc/4))
         return lengh
 
-    def create_macro_filter(self,n_max,size,filtersize):
-        overlap =int((filtersize//2)*2)
-        angles = self.find_angles(size-overlap)
-        filters = torch.zeros(size-overlap,size-overlap,self.calc_size(n_max),2,size,size)
-        for i in range(size-overlap):
-            for j in range(size-overlap):
-                filters[i,j,:,:,i:i+filtersize,j:j+filtersize] = self.create_filter(n_max,filtersize,angles[i,j])
-        return filters
-    def embed(self,input):
+    # def find_scaling(self,size,filtersize,x,y):
+    #     reference = (filtersize-1)//2
+    #     x = min(x,size-x)
+    #     y = min(x,size-y)
+    #     if x <
+    def find_scaling(self,size,filtersize):
+        max = size-1
+        reference = ((filtersize-1)//2)+1
+        filter = filtersize**2
 
+        out = np.zeros((size,size))
+        for x_in in range(size):
+            for y_in in range(size):
+                x = min(x_in,max-x_in)
+                y = min(y_in,max-y_in)
+                if x < reference:
+                    if y < reference:
+                        param = (filtersize+x-reference+1)*(filtersize+y-reference+1)
+                    else:
+                        param = (filtersize+x-reference+1)*(filtersize)
+                elif y < reference:
+                    param = (filtersize)*(filtersize+y-reference+1)
+                else:
+                    param = filter
+                out[x_in,y_in] = filter/param
+
+        return out
+    def create_macro_filter(self,n_max,size,filtersize,spacing):
+        overlap =int((filtersize//2)*2)#-2
+        out_size = int((size-overlap)/spacing)#-1#+1
+
+        angles = self.find_angles(out_size)
+        #print(angles/np.pi)
+        filters = torch.zeros(out_size,out_size,self.calc_size(n_max),2,size,size)
+        for i in range(out_size):
+            for j in range(out_size):
+                #print(self.create_filter(n_max,filtersize,angles[i,j]).size())
+                filters[i,j,:,:,spacing*i:spacing*i+filtersize,spacing*j:spacing*j+filtersize] = self.create_filter(n_max,filtersize,angles[i,j])
+        return filters
+
+    def create_macro_filter_pad(self,n_max,size,filtersize,spacing):
+        overlap =int((filtersize//2)*2)#-2
+        out_size = int((size-overlap)/spacing)#-1#+1
+
+        angles = self.find_angles(out_size)
+        #print(angles/np.pi)
+        filters = torch.zeros(out_size,out_size,self.calc_size(n_max),2,size,size)
+        scale = self.find_scaling(size-overlap,filtersize)
+        for i in range(out_size):
+            for j in range(out_size):
+                #print(self.create_filter(n_max,filtersize,angles[i,j]).size())
+                filters[i,j,:,:,spacing*i:spacing*i+filtersize,spacing*j:spacing*j+filtersize] = self.create_filter(n_max,filtersize,angles[i,j])*scale[spacing*i,spacing*j]
+
+        filters = filters[:,:,:,:,int(overlap/2):int(size-overlap/2),int(overlap/2):int(size-overlap/2)]
+        return filters
+
+    def embed(self,input):
         out = torch.einsum('mnijkl,...akl->...mnaij',self.Zernike_matrix,input)
 
         return out

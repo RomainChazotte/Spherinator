@@ -7,6 +7,18 @@ trainer:
       entity: ain-space
       tags:
         - Zernike mnist
-        - MSE loss
-        - rot and flip
-        - crossentropy_loss
+        - spacing
+        - 3 scales
+        - skip connect
+        - cross entropy loss
+        - n=6
+        - small_spacing=2
+        - padding, conv_like
+        - meanpool_scaledown
+        - zero pad
+        - 10 channels
+        - deep linear layers
+        - no angle
+        - rot
+        - no_pad
+        - different rot

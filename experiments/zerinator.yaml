@@ -39,5 +39,5 @@ lr_scheduler:
 trainer:
   max_epochs: -1
   accelerator: gpu
-  devices: [0]
+  devices: [2]
   precision: 32

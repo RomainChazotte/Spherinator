@@ -21,18 +21,18 @@ from sympy import ord0
 from torch.optim import Adam
 
 from .convolutional_encoder import ConvolutionalEncoder
+from .create_multiscale_filters import Create_multiscale_filters
 #import lightning.pytorch as pl
 from .spherinator_module import SpherinatorModule
 from .zernike_decoder import ZernikeDecoder
 from .zernike_encoder import ZernikeEncoder
 from .zernike_encoder_classify import ZernikeEncoderClassify
-from .create_multiscale_filters import Create_multiscale_filters
 
 
 class ZernikeClassifier(SpherinatorModule):
     def __init__(
         self,
-        encoder: nn.Module = ZernikeEncoderClassify(8,0,10,device = 'cuda:2'),
+        encoder: nn.Module = ZernikeEncoderClassify(6,0,10,device = 'cuda:2'),
         #encoder: nn.Module = ConvolutionalEncoder(2),
         #encoder: nn.Module = ZernikeEncoder(32,1,10,device = 'cuda:2'),
         #decoder: nn.Module = ZernikeDecoder(32,1,10,device = 'cuda:2'),
@@ -59,7 +59,25 @@ class ZernikeClassifier(SpherinatorModule):
         device = 'cuda:2'
         self.input_mask= self.mask().to(device)
         self.encoder = encoder
-        self.encode_1 = ZernikeEncoderClassify(4,0,10,device = device,local=True)
+        self.encode_1 = ZernikeEncoderClassify(6,0,10,device = device,local=True)
+        self.Multiscale_filters = Create_multiscale_filters(n_max=6,filtersize=5,device=device,spacing = 1, size=32)
+        self.Embedding_Function = Zernike_embedding(28,6, device)
+
+        #self.Embedding_Function_1 = Create_multiscale_filters(n_max=4,filtersize=10,device=device,spacing = 4)
+
+        self.encode_2 = ZernikeEncoderClassify(6,0,10,device = device,local=True)
+        self.Multiscale_filters_2 = Create_multiscale_filters(n_max=6,filtersize=5,device=device,spacing = 1, size=32)
+        self.Embedding_Function_2 = Zernike_embedding(28,6, device)
+
+
+
+
+        # self.Multiscale_filters_second = Create_multiscale_filters(n_max=8,filtersize=5,device=device,spacing = 3)
+        # self.Multiscale_filters_2_second = Create_multiscale_filters(n_max=8,filtersize=10,device=device,spacing = 3)
+
+
+
+        self.Embedding_Function_base = Zernike_embedding(28,6, device)
         #self.decoder = decoder
         self.image_size = image_size
         self.input_size = input_size
@@ -72,13 +90,11 @@ class ZernikeClassifier(SpherinatorModule):
 
         self.example_input_array = torch.randn(2, 1, self.input_size, self.input_size)
 
-        #self.criterion = nn.CrossEntropyLoss()
-        self.criterion = nn.MSELoss()
-        self.Embedding_Function = Zernike_embedding(8, device)
+        self.criterion = nn.CrossEntropyLoss()
+        #self.criterion = nn.MSELoss()
         #self.mask = self.encoder.Product0.create_mask_decrease(32,16)
         #self.mask2 = self.encoder.Product0.create_mask_increase(16,32)
         self.dropout = nn.Dropout(p=0.3)
-        self.Multiscale_filters = Create_multiscale_filters(device=device)
 
 
     def get_input_size(self):
@@ -96,13 +112,44 @@ class ZernikeClassifier(SpherinatorModule):
 
 
         with torch.no_grad():
-            x = self.Multiscale_filters.embed(x)
-        #print(x.size())
-        x = self.encode_1(x)
-        #print(x.size())
-        x = torch.transpose(x,-1,-3)
+            #x_small = F.pad(x, (2,2,2,2), "constant",0)
+            x_small = x
+            x_small = self.Multiscale_filters.embed(x_small)
+            #x = F.avg_pool2d(x,2)
 
 
+
+
+        #print(x.size())
+        x_small = self.encode_1(x_small)
+        #print(x.size())
+        x_small = torch.transpose(x_small,-1,-3)
+
+        x_small = torch.transpose(x_small,-1,-2)
+
+
+        #x_small_1 = self.Embedding_Function_1.embed(x_small)
+
+        #print(x.size(),x_small.size())
+        x = torch.cat((x_small,x), dim=-3)
+        #return   x, x_small
+        x_small = self.Embedding_Function.embed(x_small)
+        #x = F.pad(x, (4,4,4,4), "constant", 0)
+
+        x_big = self.Multiscale_filters_2.embed(x)
+
+        x_big = self.encode_2(x_big)
+        #print(x.size())
+        x_big = torch.transpose(x_big,-1,-3)
+        x_big = torch.transpose(x_big,-1,-2)
+
+
+
+        x_big = self.Embedding_Function_2.embed(x_big)
+
+
+        x = self.Embedding_Function_base.embed(x)
+        x = torch.cat((x_small,x_big,x), dim=-3)
         #x = torch.transpose(x,-2,-4)
         #print(x.size())
         #eps = np.finfo(float).eps
@@ -111,7 +158,6 @@ class ZernikeClassifier(SpherinatorModule):
         #     x  = x[:,:,self.mask,:]
         #print(x.size())
 
-        x = self.Embedding_Function.embed(x)
         #print(x.size())
 
         #print(x.size())
@@ -122,6 +168,7 @@ class ZernikeClassifier(SpherinatorModule):
         #z = z/norm
         #print(z)
         z = F.softmax(z,dim=-1)
+
         #z = F.sigmoid(z)
         #norm = torch.sum(torch.abs(z),dim=1,keepdim=True)+eps
         #z = z/norm
@@ -247,7 +294,7 @@ class ZernikeClassifier(SpherinatorModule):
             #print( torch.sum(torch.abs(picture),dim=(-1,-2),keepdim=True)[0])
             #picture = picture/norm
             out,_ = self.forward(x)
-            print(out[0])
+            #print(out[0])
             #print(out[1])
 
             loss = (self.criterion( out,y))
@@ -376,14 +423,14 @@ class ZernikeClassifier(SpherinatorModule):
         accuracy = float((targets == predictions).sum()) #/ predictions.numel()
         return (predictions.numel() -accuracy)#, accuracy
 class Zernike_embedding(nn.Module):
-    def __init__(self, n_max = 30 , device = 'cuda:2', numerical_expand = 16 ):
+    def __init__(self,size =7, n_max = 30 , device = 'cuda:2', numerical_expand = 16 ):
         super().__init__()
         self.num = numerical_expand
-        if os.path.isfile('Zernike_decode_encode_size22_{}'.format(n_max)) :
-            self.Zernike_matrix = torch.load('Zernike_decode_encode_size22_{}'.format(n_max))
+        if os.path.isfile('Zernike_decode_encode_size{}_{}'.format(size,n_max)) :
+            self.Zernike_matrix = torch.load('Zernike_decode_encode_size{}_{}'.format(size,n_max))
         else:
-            self.Zernike_matrix = self.create_filter(n_max)
-            torch.save(self.Zernike_matrix,'Zernike_decode_encode_size22_{}'.format(n_max))
+            self.Zernike_matrix = self.create_filter(n_max,size)
+            torch.save(self.Zernike_matrix,'Zernike_decode_encode_size{}_{}'.format(size,n_max))
         #size = self.calc_size(n_max)
 
 
@@ -450,12 +497,12 @@ class Zernike_embedding(nn.Module):
         return np.where(y<1,1,0)
 
 
-    def create_filter(self,n_max):
+    def create_filter(self,n_max,size):
         Zernike_functions = self.Zernicke_embedding_generator(n_max)
 
         grid_extend = 1
         #grid_resolution = 680
-        z = x = np.linspace(-grid_extend, grid_extend, int(22*self.num))
+        z = x = np.linspace(-grid_extend, grid_extend, int(size*self.num))
         z, x = np.meshgrid(z, x)
 
         #print(Zernike_functions)
@@ -489,7 +536,7 @@ class Zernike_embedding(nn.Module):
         out =torch.tensor( block_reduce(out,(1,1, self.num, self.num),func=np.sum),dtype=torch.float)
 
 
-        z = x = np.linspace(-grid_extend, grid_extend, int(22))
+        z = x = np.linspace(-grid_extend, grid_extend, int(size))
         z, x = np.meshgrid(z, x)
         out_mask = torch.tensor( self.mask(x,z))
         out= torch.einsum('ijkl,kl->ijkl',out,out_mask)

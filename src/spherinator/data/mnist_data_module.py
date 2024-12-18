@@ -24,14 +24,14 @@ class MNISTDataModule(pl.LightningDataModule):
             # transforms.Resize((87, 87)),
         ]
         # if random_rotation:
-        #     transformations += [transforms.RandomAffine(degrees=[0, 360])]
+        transformations += [transforms.RandomAffine(degrees=[0, 360])]
         transformations += [
             #transforms.Resize((32, 32)),
             #transforms.Resize((29, 29)),
             transforms.Lambda(
                 lambda x: (x - x.min()) / (x.max() - x.min())
             ),  # Normalize to [0, 1]
-            #transforms.RandomHorizontalFlip(p=0.5),
+            transforms.RandomHorizontalFlip(p=0.5),
         ]
         self.transform = transforms.Compose(transformations)
 

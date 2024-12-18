@@ -19,23 +19,24 @@ class MNISTDataModule_flip_rot(pl.LightningDataModule):
         self.batch_size = batch_size
         self.num_workers = num_workers
 
-        transformations = [
-            transforms.ToTensor(),
-            # transforms.Pad((0, 0, 1, 1), fill=0),
-            # #transforms.Resize((96, 96)),
-            # transforms.Resize((87, 87)),
-        ]
-        # if random_rotation:
-        #     transformations += [transforms.RandomAffine(degrees=[0, 360])]
-        transformations += [
-            #transforms.Resize((32, 32)),
-            #transforms.Resize((29, 29)),
-            transforms.Lambda(
-                lambda x: (x - x.min()) / (x.max() - x.min())
-            ),  # Normalize to [0, 1]
-            #transforms.RandomHorizontalFlip(p=0.5),
-        ]
-        self.transform = transforms.Compose(transformations)
+        # transformations = [
+        #     transforms.ToTensor(),
+        #     # transforms.Pad((0, 0, 1, 1), fill=0),
+        #     # #transforms.Resize((96, 96)),
+        #     # transforms.Resize((87, 87)),
+        # ]
+        # # if random_rotation:
+        # transformations += [transforms.RandomAffine(degrees=[0, 360])]
+        # transformations += [
+        #     #transforms.Resize((32, 32)),
+        #     #transforms.Resize((29, 29)),
+        #     transforms.Lambda(
+        #         lambda x: (x - x.min()) / (x.max() - x.min())
+        #     ),  # Normalize to [0, 1]
+        #     #transforms.RandomHorizontalFlip(p=0.5),
+        #     transforms.Pad(padding=3),
+        # ]
+        # self.transform = transforms.Compose(transformations)
 
     def prepare_data(self):
         # MNIST()

@@ -45,6 +45,8 @@ class mnist_fliprot_dataset(SpherinatorDataset):
                 lambda x: (x - x.min()) / (x.max() - x.min())
             ),  # Normalize to [0, 1]
             transforms.RandomHorizontalFlip(p=0.5),
+            #transforms.Pad(padding=3),
+            #transforms.RandomResizedCrop(28,scale=(0.9,1.1))
         ]
         self.transform = transforms.Compose(transformations)
 
