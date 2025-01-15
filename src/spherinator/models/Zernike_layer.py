@@ -10,6 +10,8 @@ import torch.nn as nn
 from numpy import convolve
 from skimage.measure import block_reduce
 
+#from torch.autograd.profiler import profile, record_function, ProfilerActivity
+
 #import lightning.pytorch as pl
 
 
@@ -151,6 +153,7 @@ class Zernike_layer(nn.Module):
                 self.Zernike_matrix = torch.zeros(size,size,size,4, device = self.device)
             else:
                 if os.path.isfile('../Zernike_layer_matrix_29{}'.format(n_max)):
+                    #self.Zernike_matrix = torch.tensor(self.Zernicke_matrix_generator(n_max),dtype=torch.float)
                     self.Zernike_matrix = torch.load('../Zernike_layer_matrix_29{}'.format(n_max))
                 else:
                     print('processing Zernike layer')
@@ -461,6 +464,17 @@ class Zernike_layer(nn.Module):
 
 
     def forward(self,in1,in2):
+
+        # Zernike_matrix_2 = self.Zernike_matrix.unsqueeze(0)
+        # Zernike_matrix_2 = Zernike_matrix_2.unsqueeze(0)
+        # if in1.size(1) != 10:
+        #     Zernike_matrix_2 = Zernike_matrix_2.unsqueeze(0)
+        #     Zernike_matrix_2 = Zernike_matrix_2.unsqueeze(0)
+        # Zernike_matrix_2 = Zernike_matrix_2.unsqueeze(-1)
+        # Zernike_matrix_2 = Zernike_matrix_2.unsqueeze(-1)
+
+        #with profile(use_cuda = True,with_stack=True, record_shapes=True) as prof:
+
         if self.increase_in1:
             '''
             Increasing size of input 1 in case it needs to
@@ -500,6 +514,7 @@ class Zernike_layer(nn.Module):
         #a = torch.sum(torch.sqrt(torch.sum(torch.square(in2),dim =(-1),keepdim=False)),dim=-1)
         #print(a)
         #in1 = torch.einsum('...cim,cij,...cjn->...cijmn', in1,self.weight,in2)
+        #breakpoint()
         in1 = torch.einsum('...im,ij,...jn->...ijmn', in1,self.weight,in2)
         #a = torch.sum(torch.sqrt(torch.sum(torch.square(in1),dim =(-1,-2),keepdim=False)),dim=(-1,-2))
         #print(a)
@@ -517,7 +532,17 @@ class Zernike_layer(nn.Module):
         #         #print(j)
         #         #print(torch.sum(self.Zernike_matrix[i,j]))
         # donkey
+        #print(in1.size())
+        #print(Zernike_matrix.size())
+
+        # in1 = in1.unsqueeze(-3)
+        # in1 = in1.unsqueeze(-3)
+        # #print(in1.size(), Zernike_matrix_2.size())
+        # in1 = torch.mul(in1, Zernike_matrix_2)
+        # in1 = torch.sum(in1,dim = (-5,-6),keepdim=False)
+
         in1 = torch.einsum('ijkl,...ijmn->...klmn',self.Zernike_matrix,in1)
+        #in1 = torch.einsum('abcdefijgh,abcdefij->abcdghij',Zernike_matrix_2,in1)
         #a = torch.sum(torch.sqrt(torch.sum(torch.square(in1),dim =(-1,-2),keepdim=False)),dim=(-1,-2))
         #print(a)
         ##print(torch.cuda.mem_get_info())
@@ -593,6 +618,8 @@ class Zernike_layer(nn.Module):
         #print(a)
         #print('layerdone')
 
+        #print(prof.key_averages(group_by_input_shape=True).table(sort_by="cuda_time_total", row_limit=100))
+
         return out
 
 
@@ -619,7 +646,7 @@ class Zernike_Norms(nn.Module):
     Not having them normalized leads to an overrepresentation of filters of higher norm.
 
     '''
-    def __init__(self, n_max = 30, device= 'cuda:2',numerical_expand=4):
+    def __init__(self, n_max = 30, device= 'cuda:2',numerical_expand=8):
         super().__init__()
         self.num = numerical_expand
         #self.device = device
@@ -632,7 +659,13 @@ class Zernike_Norms(nn.Module):
         else:
             print('processing norms')
             self.norm_output = self.calc_norms(n_max)
+            print(self.norm_output)
             torch.save(self.norm_output,'../Zernike_norms_29_{}'.format(n_max))
+
+        # print('processing norms')
+        # self.norm_output = self.calc_norms(n_max)
+        # print(self.norm_output)
+        # torch.save(self.norm_output,'../Zernike_norms_29_{}'.format(n_max))
         #size = self.calc_size(n_max)
 
         #self.norm_output= torch.tensor(self.norm_output).to(device)
@@ -710,7 +743,7 @@ class Zernike_Norms(nn.Module):
 
 
         out = np.array(out)
-        out =torch.tensor( block_reduce(out,(1,1, self.num, self.num),func=np.sum),dtype=torch.float)
+        out =torch.tensor( block_reduce(out,(1,1, self.num, self.num),func=np.sum),dtype=torch.float) / (self.num**2)
 
 
         out = torch.tensor(out)

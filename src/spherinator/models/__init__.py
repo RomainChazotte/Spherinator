@@ -30,6 +30,7 @@ from .zernike_encoder import ZernikeEncoder
 from .zernike_encoder_classify import ZernikeEncoderClassify
 from .Zernike_layer import Lintrans3, Multilin, Zernike_layer
 from .create_multiscale_filters import Create_multiscale_filters
+from .zernike_local_encoder import ZernikeEncoderLocal
 
 __all__ = [
     "ZernikeDecoder",
@@ -49,5 +50,6 @@ __all__ = [
     "Zernike_layer",
     "Multilin",
     "Lintrans3",
-    "Create_multiscale_filters"
+    "Create_multiscale_filters",
+    "ZernikeEncoderLocal"
 ]
