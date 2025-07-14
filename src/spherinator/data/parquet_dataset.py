@@ -57,11 +57,13 @@ class ParquetDataset(Dataset):
             data["concat"] = data.apply(lambda x: np.concatenate((x[data_column[0]], x[data_column[1]])), axis=1)
             self.data = data["concat"]
 
+        self.data = torch.tensor(self.data, dtype=torch.float32).to('cuda')
+
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, index: int) -> Union[torch.Tensor, tuple[torch.Tensor, torch.Tensor]]:
-        batch = torch.tensor(self.data[index], dtype=torch.float32)
+        batch = self.data[index]
         if self.transform is not None:
             batch = self.transform(batch)
         if self.with_index:
