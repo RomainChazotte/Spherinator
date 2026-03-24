@@ -1,0 +1,40 @@
+seed_everything: false
+
+model:
+  class_path: spherinator.zernike.VAE
+  init_args:
+    image_size: 128
+
+
+data:
+  class_path: spherinator.data.ParquetDataModule
+  init_args:
+    # data_directory: "/hits/basement/its/doserbd/SPACE/SKIRT_synthetic_images/parquet-v4-128/0.parquet"
+    data_directory: "/urz/gpuscratch/ain/romain/data/Illustris_data/0.parquet"
+    data_column: "data"
+    normalize: "minmax_rot"
+    batch_size: 512
+    num_workers: 0
+    shuffle: True
+
+optimizer:
+  class_path: torch.optim.Adam
+  init_args:
+    lr: 0.0002
+
+lr_scheduler:
+  class_path: lightning.pytorch.cli.ReduceLROnPlateau
+  init_args:
+    mode: min
+    factor: 0.6
+    patience: 400
+    cooldown: 100
+    min_lr: 0.00001
+    monitor: train_loss
+
+
+trainer:
+  max_epochs: 10000
+  accelerator: gpu
+  devices: 1
+  precision: 32

@@ -8,4 +8,5 @@ __all__ = [
     "data",
     "distributions",
     "models",
+    "zernike",
 ]
