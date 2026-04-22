@@ -49,21 +49,20 @@ class VAE(pl.LightningModule):
 
         self.rand_flip = torchvision.transforms.RandomHorizontalFlip(p=0.5)
         self.criterion = nn.MSELoss()
-        self.eps = 0.00000000000001
+        self.eps = 0.00000000000000000001
 
 
         self.fc_location = nn.Linear(2, 3)
-        self.inv_fc_location = nn.Linear(3,2)
         self.fc_scale = nn.Linear(2, 1)
 
     def get_input_size(self):
         return self.input_size
 
     def encode(self, x):
-        x = self.encoder(x)
-        return x
-    def decode(self, x):
-        x = self.decoder(x)
+        x,angle = self.encoder(x)
+        return x,angle
+    def decode(self, x,angle):
+        x = self.decoder(x,angle)
         return x
 
     def reparameterize(self, z_location, z_scale):
@@ -71,40 +70,19 @@ class VAE(pl.LightningModule):
         p_z = HypersphericalUniform(self.z_dim, device=z_location.device)
         return q_z, p_z
 
-    def dezernify(self, x):
-        # breakpoint()
-        angle = x[...,1,0]/(x[...,1,1]+x[...,1,0]+self.eps)
-        x = torch.sum(x**2, dim=-1,keepdim=False)
-        # mean = torch.sqrt(torch.sum(x, dim=-1,keepdim=False)).unsqueeze(-1)
-        x = torch.sqrt(x)
-        # x = x/mean
-        return x, angle
-    def zernify(self, z, angle):
-        z = z.unsqueeze(-1)
-        z2 = z.clone()
-        z2[...,1,0] = z[...,1,0]*(1-angle)
-        z3 = z.clone()
-        z3[...,1,0] = z[...,1,0]*angle
-        z2[...,0,0] *= 0
-        # z =torch.cat((z,z2),dim=-1)
-        z =torch.cat((z3,z2),dim=-1)
-        return z
 
     def make_correct_format(self, x):
         z_location = self.fc_location(x)
         z_location = torch.nn.functional.normalize(z_location, p=2.0, dim=-1)
         # SVAE code: the `+ 1` prevent collapsing behaviors
-        z_scale = F.softplus(self.fc_scale(x)) + 1e-5
+        z_scale = F.softplus(self.fc_scale(x)) +1 #+ 1e-5
+        z_scale = torch.zeros_like(z_scale)+ 5000
         return z_location, z_scale
 
     def forward(self, x):
-        # with torch.autograd.set_detect_anomaly(True):
-        z = self.encode(x)
-        # print(z.size())
-        z_location, angle = self.dezernify(z)
+        z,angle = self.encode(x)
 
-        # z_scale = F.softplus(z_scale) + 1e-3
-        z_location, z_scale = self.make_correct_format(z_location)
+        z_location, z_scale = self.make_correct_format(z)
 
 
 
@@ -112,7 +90,7 @@ class VAE(pl.LightningModule):
         z_out = q_z.rsample()
 
 
-        z_out = self.inv_fc_location(z_out)
+        # z_out = self.inv_fc_location((z_location*7+z_out*3)/10)
         '''
 
         z_location = self.fc_location(z_location)
@@ -122,15 +100,13 @@ class VAE(pl.LightningModule):
         z_out = self.inv_fc_location(z_out)
 
         '''
-        z_out = self.zernify(z_out, angle)
-
         # print(z_out.size())
 
-        recon = self.decode(z_out)
+        recon = self.decode(z_out, angle)
 
         # print(recon.size())
 
-        return recon#,q_z, p_z
+        return recon,q_z, p_z
 
     def training_step(self, batch, batch_idx):
         with torch.no_grad():
@@ -138,10 +114,10 @@ class VAE(pl.LightningModule):
 
             z = self.Embedding_Function.embed(x)
 
-        out = self.forward(z)
-        # out,q_z, p_z = self.forward(z)
+        # out = self.forward(z)
+        out,q_z, p_z = self.forward(z)
         loss = self.criterion(out,z)
-        # loss_KL = self.beta * torch.distributions.kl.kl_divergence(q_z, p_z).mean()
+        loss_KL = self.beta * torch.distributions.kl.kl_divergence(q_z, p_z).mean()
 
 
         img = self.Embedding_Function.decode(out)
@@ -154,7 +130,7 @@ class VAE(pl.LightningModule):
         self.log("learning_rate", self.optimizers().param_groups[0]["lr"])
         # self.log("KL_loss", loss_KL)
 
-        return img_loss#+loss_KL
+        return img_loss+loss_KL
 
 
 

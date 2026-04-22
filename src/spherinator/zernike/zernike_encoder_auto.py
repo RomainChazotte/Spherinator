@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from .zernike_layer import ZernikeLayer
-# from .utils import RMSNorm           
+# from .utils import RMSNorm
 
 from .layers import MultiLinear
 
@@ -14,7 +14,7 @@ class ZernikeEncoderAuto(pl.LightningModule):
     '''
     A classification model using Zernike-based layers to encode structured image data.
 
-    This module applies a sequence of equivariant Zernike layers, followed by normalization 
+    This module applies a sequence of equivariant Zernike layers, followed by normalization
     and fully connected layers, to produce a classification output.
 
     Args:
@@ -22,7 +22,7 @@ class ZernikeEncoderAuto(pl.LightningModule):
          - n_output (int): maximum Zernike order for the second layer
          - in_channels (int): number of input channels in the input tensor
          - num_channels (int): number of intermediate/output channels for Zernike layers
-         - device (str): device on which the model will be run; e.g. 'cuda', 'cpu', or 'mps' 
+         - device (str): device on which the model will be run; e.g. 'cuda', 'cpu', or 'mps'
          (for macOS with Metal programming framework).
          - image_size (int): size of the input image (assumed square). Default: 14
          - p_dropout (float): dropout probability. Default: 0.5
@@ -43,45 +43,45 @@ class ZernikeEncoderAuto(pl.LightningModule):
 
         if self.Very_large:
             num_channels = int(num_channels*4)
-            self.Product00 = ZernikeLayer(n_max=n_in, n_out=n_in, multichanneled='independant', 
-                                        in_channels=in_channels, intermediate_channels=int(num_channels/8), 
-                                        out_channels=int(num_channels/8), image_size=image_size, 
+            self.Product00 = ZernikeLayer(n_max=n_in, n_out=n_in, multichanneled='independant',
+                                        in_channels=in_channels, intermediate_channels=int(num_channels/8),
+                                        out_channels=int(num_channels/8), image_size=image_size,
                                         fast_test_dimensionality=test_dimens,vast_weights=vast_weights,Skip_connect=Skip_connect, device=device)
-            size = self.Product00._calc_size(n_in)  
-            self.Rnorm00 = nn.RMSNorm([size,2], elementwise_affine=False)   
+            size = self.Product00._calc_size(n_in)
+            self.Rnorm00 = nn.RMSNorm([size,2], elementwise_affine=False)
             self.SkipLinear_0 = MultiLinear(in_channels, int(num_channels/8), size, non_lin=True)
             in_channels = int(num_channels/8)
 
 
-        self.Product01 = ZernikeLayer(n_max=n_in, n_out=n_temp, multichanneled='independant', 
-                                      in_channels=in_channels, intermediate_channels=int(num_channels/8), 
-                                      out_channels=int(num_channels/8), image_size=image_size, 
+        self.Product01 = ZernikeLayer(n_max=n_in, n_out=n_temp, multichanneled='independant',
+                                      in_channels=in_channels, intermediate_channels=int(num_channels/8),
+                                      out_channels=int(num_channels/8), image_size=image_size,
                                       fast_test_dimensionality=test_dimens,vast_weights=vast_weights,Skip_connect=Skip_connect, device=device)
 
-        self.Product02 = ZernikeLayer(n_max=n_temp, n_out=int(n_temp/2), multichanneled='independant', 
-                                      in_channels=int(num_channels/8), intermediate_channels=int(num_channels/4), 
-                                      out_channels=int(num_channels/4), image_size=image_size, 
+        self.Product02 = ZernikeLayer(n_max=n_temp, n_out=int(n_temp/2), multichanneled='independant',
+                                      in_channels=int(num_channels/8), intermediate_channels=int(num_channels/4),
+                                      out_channels=int(num_channels/4), image_size=image_size,
                                       fast_test_dimensionality=test_dimens,vast_weights=vast_weights,Skip_connect=Skip_connect, device=device)
 
-        self.Product03 = ZernikeLayer(n_max=int(n_temp/2), n_out=int(n_temp/4), multichanneled='independant', 
-                                      in_channels=int(num_channels/4), intermediate_channels=int(num_channels/2), 
-                                      out_channels=int(num_channels/2), image_size=image_size, 
+        self.Product03 = ZernikeLayer(n_max=int(n_temp/2), n_out=int(n_temp/4), multichanneled='independant',
+                                      in_channels=int(num_channels/4), intermediate_channels=int(num_channels/2),
+                                      out_channels=int(num_channels/2), image_size=image_size,
                                       fast_test_dimensionality=test_dimens,vast_weights=vast_weights,Skip_connect=Skip_connect, device=device)
 
-        self.Product04 = ZernikeLayer(n_max=int(n_temp/4), n_out=int(n_temp/8), multichanneled='independant', 
-                                      in_channels=int(num_channels/2), intermediate_channels=num_channels, 
-                                      out_channels=num_channels, image_size=image_size, 
+        self.Product04 = ZernikeLayer(n_max=int(n_temp/4), n_out=int(n_temp/8), multichanneled='independant',
+                                      in_channels=int(num_channels/2), intermediate_channels=num_channels,
+                                      out_channels=num_channels, image_size=image_size,
                                       fast_test_dimensionality=test_dimens,vast_weights=vast_weights,Skip_connect=Skip_connect, device=device)
 
 
         if self.Very_small:
-            self.Product05 = ZernikeLayer(n_max=int(n_temp/8), n_out=int(n_temp/16), multichanneled='independant', 
-                                        in_channels=num_channels, intermediate_channels=num_channels, 
-                                        out_channels=num_channels, image_size=image_size, 
+            self.Product05 = ZernikeLayer(n_max=int(n_temp/8), n_out=int(n_temp/16), multichanneled='independant',
+                                        in_channels=num_channels, intermediate_channels=num_channels,
+                                        out_channels=num_channels, image_size=image_size,
                                         fast_test_dimensionality=test_dimens,vast_weights=vast_weights,Skip_connect=Skip_connect, device=device)
         # Normalization 1
-        size = self.Product01._calc_size(n_temp)  
-        self.Rnorm01 = nn.RMSNorm([size,2], elementwise_affine=False)   
+        size = self.Product01._calc_size(n_temp)
+        self.Rnorm01 = nn.RMSNorm([size,2], elementwise_affine=False)
 
         # self.SkipLinear_1 = MultiLinear(in_channels, int(num_channels/8), size, non_lin=True)
         # Normalization 2
@@ -112,7 +112,7 @@ class ZernikeEncoderAuto(pl.LightningModule):
 
 
         # Regularization
-        # self.dropout = nn.Dropout(p=p_dropout)    
+        # self.dropout = nn.Dropout(p=p_dropout)
 
     def forward(self, x) -> torch.tensor:
         ''' Forward pass for classification '''
@@ -152,4 +152,14 @@ class ZernikeEncoderAuto(pl.LightningModule):
             x = self.Rnorm05(x)
             x = self.MultiLinear_0(x)
             # x = self.Rnorm05(x)
-        return x
+
+        x,angle = self.dezernify(x)
+        return x,angle
+
+
+    def dezernify(self, x):
+        # breakpoint()
+        y = torch.sum(x**2, dim=-1,keepdim=False)
+        y = torch.sqrt(y)
+        angle = x/(y.unsqueeze(-1)+0.000000000000001)
+        return y, angle
